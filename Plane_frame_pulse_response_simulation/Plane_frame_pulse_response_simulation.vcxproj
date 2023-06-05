@@ -101,6 +101,7 @@
     <ClCompile Include="src\tool_window\solver_window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="imgui.ini" />
     <None Include="resources\dlls\freetype.dll" />
     <None Include="resources\dlls\glew32.dll" />
     <None Include="resources\dlls\glfw3.dll" />
@@ -112,7 +113,9 @@
     <Font Include="resources\fonts\HyperFont.ttf" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="resources\images\frame_supports.png" />
     <Image Include="resources\images\innx_icon.png" />
+    <Image Include="resources\images\load_img.png" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\app_window.h" />

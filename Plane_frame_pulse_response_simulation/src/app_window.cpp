@@ -66,8 +66,9 @@ void app_window::init()
 	// Window initialize success
 	is_glwindow_success = true;
 
-	// Intialize the geometry
+	// Intialize the geometry and tool windows
 	geom.init();
+	ct_window.init();
 
 	// Set the mouse button callback function with the user pointer pointing to the mouseHandler object
 	glfwSetWindowUserPointer(window, &mouse_Handler);
@@ -219,7 +220,15 @@ void app_window::menu_events()
 		// Edit menu item
 		if (ImGui::BeginMenu("Edit"))
 		{
-			if (ImGui::MenuItem("Constraints/ Loads"))
+			if (ImGui::MenuItem("Constraints"))
+			{
+				// Handle menu Add Load & Add Constraint
+				//if (geom.is_geometry_set == true)
+				//{
+				ct_window.is_show_window = true;
+				//}
+			}
+			if (ImGui::MenuItem("Loads"))
 			{
 				// Handle menu Add Load & Add Constraint
 				//if (geom.is_geometry_set == true)
@@ -261,7 +270,7 @@ void app_window::menu_events()
 	}
 
 	// Execute window render operation
-	//ct_window.render_window();
+	ct_window.render_window();
 	//op_window.render_window();
 	//mat_window.render_window();
 	//fe_window.render_window();
@@ -292,7 +301,7 @@ void app_window::framebufferSizeCallback(GLFWwindow* window, int window_width, i
 void app_window::GLFWwindow_set_icon(GLFWwindow* window)
 {
 	// Get the image
-	stb_implement stb("../resources/images/innx_icon.png");
+	stb_implement stb("./resources/images/innx_icon.png");
 
 	// Set the window icon using GLFW's API for Windows
 	GLFWimage icon;

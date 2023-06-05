@@ -77,6 +77,7 @@
     <None Include="resources\dlls\freetype.dll" />
     <None Include="resources\dlls\glew32.dll" />
     <None Include="resources\dlls\glfw3.dll" />
+    <None Include="imgui.ini" />
   </ItemGroup>
   <ItemGroup>
     <Font Include="resources\fonts\CanadaDBNormal.ttf" />
@@ -86,6 +87,12 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\images\innx_icon.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\images\frame_supports.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\images\load_img.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
