@@ -12,6 +12,8 @@
 #include "geometry_store/geom_store.h"
 //____ Mouse event handler
 #include "events_handler/mouse_event_handler.h"
+//---- File event handler
+#include "events_handler/file_events.h"
 //____ Tool Window
 #include "tool_window/constraint_window.h"
 #include "tool_window/load_window.h"
@@ -27,6 +29,8 @@ public:
 
 	// Variable to control the windows mouse events
 	mouse_event_handler mouse_Handler;
+	// Variable to control the file menu events
+	file_events file_menu;
 
 	bool is_glwindow_success = false;
 	static int window_width;

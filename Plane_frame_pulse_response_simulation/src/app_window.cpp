@@ -66,9 +66,15 @@ void app_window::init()
 	// Window initialize success
 	is_glwindow_success = true;
 
-	// Intialize the geometry and tool windows
-	geom.init();
-	ct_window.init();
+	// Intialize tool windows
+    ct_window.init();
+	ld_window.init();
+	mat_window.init();
+	op_window.init();
+
+	// Initialize the geometry
+	geom.init(&op_window,&mat_window,&sol_window);
+
 
 	// Set the mouse button callback function with the user pointer pointing to the mouseHandler object
 	glfwSetWindowUserPointer(window, &mouse_Handler);
@@ -132,12 +138,8 @@ void app_window::app_render()
 	ImGuiIO& io = ImGui::GetIO();
 	imgui_font = io.Fonts->AddFontFromFileTTF("./resources/fonts/FreeSans.ttf", 18);
 
-	//geom.init();
-	//ct_window.bind_images();
-
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glLineWidth(3.0f);
 
 	// Main rendering loop
 	while (!glfwWindowShouldClose(window))
@@ -159,14 +161,13 @@ void app_window::app_render()
 		// Window size change event
 		if (isWindowSizeChanging == true)
 		{
-			geom.updateWindowDimension(window_width, window_height);
+			geom.update_WindowDimension(window_width, window_height);
 			mouse_Handler.zoom_to_fit();
 		}
 		isWindowSizeChanging = false;
 
-		//// Paint the geometry
-		// geom.paint_geometry();
-
+		// Paint the geometry
+		geom.paint_geometry();
 
 		// Render ImGui UI
 		ImGui::Render();
@@ -196,19 +197,19 @@ void app_window::menu_events()
 			if (ImGui::MenuItem("Import varai2D"))
 			{
 				// Handle menu Import varai2D
-				// menu_click.update_event(import_varai2d, geom);
+				file_menu.filemenu_event(import_varai2d, geom);
 				isWindowSizeChanging = true;
 			}
 			if (ImGui::MenuItem("Import raw data"))
 			{
 				// Handle menu Import raw data
-				// menu_click.update_event(import_raw_data, geom);
+				file_menu.filemenu_event(import_raw_data, geom);
 				isWindowSizeChanging = true;
 			}
 			if (ImGui::MenuItem("Export raw data"))
 			{
 				// Handle menu Export raw data
-				// menu_click.update_event(export_raw_data, geom);
+				file_menu.filemenu_event(export_raw_data, geom);
 			}
 			if (ImGui::MenuItem("Exit"))
 			{
@@ -222,7 +223,7 @@ void app_window::menu_events()
 		{
 			if (ImGui::MenuItem("Constraints"))
 			{
-				// Handle menu Add Load & Add Constraint
+				// Handle menu Add Constraint
 				//if (geom.is_geometry_set == true)
 				//{
 				ct_window.is_show_window = true;
@@ -230,10 +231,10 @@ void app_window::menu_events()
 			}
 			if (ImGui::MenuItem("Loads"))
 			{
-				// Handle menu Add Load & Add Constraint
+				// Handle menu Add Load
 				//if (geom.is_geometry_set == true)
 				//{
-				//	ct_window.is_show_window = true;
+				ld_window.is_show_window = true;
 				//}
 			}
 			if (ImGui::MenuItem("Material"))
@@ -241,13 +242,13 @@ void app_window::menu_events()
 				// Handle menu Edit Materials
 				//if (geom.is_geometry_set == true)
 				//{
-				//	mat_window.is_show_window = true;
+				mat_window.is_show_window = true;
 				//}
 			}
 			if (ImGui::MenuItem("View Options"))
 			{
 				// Handle menu View Options of the app
-				// op_window.is_show_window = true;
+				op_window.is_show_window = true;
 			}
 			ImGui::EndMenu();
 		}
@@ -271,8 +272,9 @@ void app_window::menu_events()
 
 	// Execute window render operation
 	ct_window.render_window();
-	//op_window.render_window();
-	//mat_window.render_window();
+	ld_window.render_window();
+	mat_window.render_window();
+	op_window.render_window();
 	//fe_window.render_window();
 
 	// Pop the custom font after using it

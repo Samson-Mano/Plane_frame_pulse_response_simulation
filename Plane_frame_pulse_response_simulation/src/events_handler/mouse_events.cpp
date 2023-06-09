@@ -49,7 +49,7 @@ void mouse_events::pan_operation(glm::vec2& current_translataion)
 	// Pan operation in progress
 	total_translation = (prev_translation + current_translataion);
 
-	// geom->pan_geometry(total_translation);
+	geom->update_model_pan(total_translation);
 }
 
 void mouse_events::pan_operation_ends()
@@ -88,7 +88,7 @@ void mouse_events::zoom_operation(double& e_delta, glm::vec2& loc)
 	glm::vec2 g_tranl = -0.5f * static_cast<float>(zoom_val) * (screen_pt_b4_scale - screen_pt_a4_scale);
 
 	// Set the zoom
-	// geom->zoom_geometry(zoom_val);
+	geom->update_model_zoom(zoom_val);
 
 	// Perform Translation for Intelli Zoom
 	pan_operation(g_tranl);
@@ -100,7 +100,7 @@ void mouse_events::zoom_to_fit()
 	// Zoom to fit the model
 	prev_translation = glm::vec2(0);
 	zoom_val = 1.0f;
-	// geom->zoomfit_geometry();
+	geom->update_model_zoomfit();
 	// std::cout << "Zoom val: " << zoom_val << std::endl;
 }
 

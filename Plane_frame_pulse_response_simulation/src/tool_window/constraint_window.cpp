@@ -27,7 +27,7 @@ void constraint_window::render_window()
 
 	ImGui::Begin("Constraints");
 
-	// Add your constraint input controls here
+	// Add constraint input controls
 // Option to select the types of support
 // Define an array of options
 	const int options_count = 4;
@@ -61,7 +61,7 @@ void constraint_window::render_window()
 
 	// Input box to give input via text
 	static bool input_mode = false;
-	static char angle_str[4] = ""; // buffer to store input angle string
+	static char angle_str[8] = ""; // buffer to store input angle string
 	static float angle_input = static_cast<float>(constraint_angle); // buffer to store input angle value
 
 	// Button to switch to input mode
@@ -70,7 +70,7 @@ void constraint_window::render_window()
 		if (ImGui::Button("Input Angle"))
 		{
 			input_mode = true;
-			snprintf(angle_str, 4, "%.1f", static_cast<float>(constraint_angle)); // set the buffer to current angle
+			snprintf(angle_str, 8, "%.1f", angle_input); // set the buffer to current angle
 		}
 	}
 	else // input mode
