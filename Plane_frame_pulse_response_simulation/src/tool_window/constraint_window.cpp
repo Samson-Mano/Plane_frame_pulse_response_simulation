@@ -259,8 +259,8 @@ bool constraint_window::get_image_min_max_coord(ImVec2& window_pos, ImVec2& wind
 	if (window_size.x < 50 || window_size.y < 50)
 		return false;
 
-	float rect_min_size = std::min(window_size.x, window_size.y);
-	const float size_factor = 0.415f;
+	double rect_min_size = std::min(window_size.x, window_size.y);
+	const double size_factor = 0.415f;
 
 
 	// Rectangle origin
@@ -274,9 +274,9 @@ bool constraint_window::get_image_min_max_coord(ImVec2& window_pos, ImVec2& wind
 	glm::vec2 bot_left = glm::vec2(-(rect_min_size * size_factor), -(rect_min_size * size_factor));
 
 	//___________________________________________________________________________________________________________
-	float radians = ((orientation + 90) * 3.14159365f) / 180.0f; // convert degrees to radians
-	float cos_theta = cos(radians);
-	float sin_theta = sin(radians);
+	double radians = ((orientation + 90) * 3.14159365f) / 180.0f; // convert degrees to radians
+	double cos_theta = cos(radians);
+	double sin_theta = sin(radians);
 
 	// Rotated point of the corners
 	ImVec2 rotated_pt_top_left = ImVec2((top_left.x * cos_theta) - (top_left.y * sin_theta),

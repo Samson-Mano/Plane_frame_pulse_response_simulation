@@ -84,7 +84,7 @@ void geom_store::read_varai2d(std::ifstream& input_file)
 			for (i = j; i < num_nodes; i++)
 			{
 				int node_id;
-				float x, y;
+				double x, y;
 
 				std::stringstream ss(lines[i + 1]);
 				std::string token;
@@ -93,13 +93,14 @@ void geom_store::read_varai2d(std::ifstream& input_file)
 				node_id = std::stoi(token);
 
 				std::getline(ss, token, ','); // read the x-coordinate
-				x = std::stof(token);
+				x = std::stod(token);
 
 				std::getline(ss, token, ','); // read the y-coordinate
-				y = std::stof(token);
+				y = std::stod(token);
 
 				// Add to node store list
-				model_nodes.add_node(node_id, glm::vec2(x, y));
+				glm::vec2 node_pt = glm::vec2(x, y);
+				model_nodes.add_node(node_id,node_pt);
 
 				j++;
 			}
@@ -131,7 +132,8 @@ void geom_store::read_varai2d(std::ifstream& input_file)
 				end_node_id = std::stoi(token);
 
 				// Create lines_store object using references to startNode and endNode
-				model_lineelements.add_line(line_id, &model_nodes.nodeMap[start_node_id], &model_nodes.nodeMap[end_node_id], 0);
+				int mat_id = 0;
+				model_lineelements.add_elementline(line_id, &model_nodes.nodeMap[start_node_id], &model_nodes.nodeMap[end_node_id], mat_id);
 
 				j++;
 			}
@@ -141,7 +143,7 @@ void geom_store::read_varai2d(std::ifstream& input_file)
 		j++;
 	}
 
-	if (model_nodes.node_count < 1 || model_lineelements.line_element_count < 1)
+	if (model_nodes.node_count < 1 || model_lineelements.elementline_count < 1)
 	{
 		// No elements added
 		return;
@@ -187,8 +189,8 @@ void geom_store::update_model_matrix()
 	// Find the scale of the model (with 0.9 being the maximum used)
 	int max_dim = geom_param.window_width > geom_param.window_height ? geom_param.window_width : geom_param.window_height;
 
-	float normalized_screen_width = 1.8f * (float(geom_param.window_width) / float(max_dim));
-	float normalized_screen_height = 1.8f * (float(geom_param.window_height) / float(max_dim));
+	double normalized_screen_width = 1.8f * (static_cast<double>(geom_param.window_width) / static_cast<double>(max_dim));
+	double normalized_screen_height = 1.8f * (static_cast<double>(geom_param.window_height) / static_cast<double>(max_dim));
 
 
 	geom_param.geom_scale = std::min(normalized_screen_width / geom_param.geom_bound.x,
@@ -205,6 +207,8 @@ void geom_store::update_model_matrix()
 
 	// Update the model matrix
 	model_nodes.update_geometry_matrices(true, false, false, false, false);
+	model_lineelements.update_geometry_matrices(true, false, false, false, false);
+	model_constarints.update_geometry_matrices(true, false, false, false, false);
 }
 
 void geom_store::update_model_zoomfit()
@@ -220,7 +224,8 @@ void geom_store::update_model_zoomfit()
 
 	// Update the zoom scale and pan translation
 	model_nodes.update_geometry_matrices(false, true, true, false, false);
-
+	model_lineelements.update_geometry_matrices(false, true, true, false, false);
+	model_constarints.update_geometry_matrices(false, true, true, false, false);
 }
 
 void geom_store::update_model_pan(glm::vec2& transl)
@@ -236,6 +241,8 @@ void geom_store::update_model_pan(glm::vec2& transl)
 
 	// Update the pan translation
 	model_nodes.update_geometry_matrices(false, true, false, false, false);
+	model_lineelements.update_geometry_matrices(false, true, false, false, false);
+	model_constarints.update_geometry_matrices(false, true, false, false, false);
 }
 
 void geom_store::update_model_zoom(double& z_scale)
@@ -248,6 +255,8 @@ void geom_store::update_model_zoom(double& z_scale)
 
 	// Update the Zoom
 	model_nodes.update_geometry_matrices(false, false, true, false, false);
+	model_lineelements.update_geometry_matrices(false, false, true, false, false);
+	model_constarints.update_geometry_matrices(false, false, true, false, false);
 }
 
 void geom_store::update_model_transperency(bool is_transparent)
@@ -268,8 +277,41 @@ void geom_store::update_model_transperency(bool is_transparent)
 
 	// Update the model transparency
 	model_nodes.update_geometry_matrices(false, false, false, true, false);
+	model_lineelements.update_geometry_matrices(false, false, false, true, false);
+	model_constarints.update_geometry_matrices(false, false, false, true, false);
+}
+
+void geom_store::set_nodal_constraint(glm::vec2 mouse_click_loc, int& constraint_type, double& constraint_angle, bool is_add)
+{
+	if (is_geometry_set == false)
+		return;
+
+	// geometry is set so check whether node is hit
+	int node_hit_id = model_nodes.is_node_hit(mouse_click_loc);;
+
+	if (node_hit_id != -1)
+	{
+		// Node is hit
+		if (is_add == true)
+		{
+			// Add constraints
+			model_constarints.add_constraint(node_hit_id, model_nodes.nodeMap[node_hit_id].node_pt, constraint_type, constraint_angle);
+			model_constarints.set_buffer();
+		}
+		else
+		{
+			// remove constraint
+			model_constarints.delete_constraint(node_hit_id);
+			model_constarints.set_buffer();
+		}
+	}
+}
+
+void geom_store::set_member_load(glm::vec2 mouse_click_loc, double& load_value, double& load_angle, bool is_add)
+{
 
 }
+
 
 void geom_store::paint_geometry()
 {
@@ -279,6 +321,9 @@ void geom_store::paint_geometry()
 	// Clean the back buffer and assign the new color to it
 	 glClear(GL_COLOR_BUFFER_BIT);
 
+
+	model_constarints.paint_constraints();
+	model_lineelements.paint_elementlines();
 	model_nodes.paint_model_nodes();
 
 	if (op_window->is_show_nodenumber == true)
@@ -293,6 +338,17 @@ void geom_store::paint_geometry()
 		model_nodes.paint_label_node_coords();
 	}
 
+	if (op_window->is_show_linenumber == true)
+	{
+		// Show line ID label
+		model_lineelements.paint_label_line_ids();
+	}
+
+	if (op_window->is_show_linelength == true)
+	{
+		// Show line length label
+		model_lineelements.paint_label_line_lengths();
+	}
 }
 
 void geom_store::create_geometry(nodes_list_store& model_nodes, elementline_list_store& model_lineelements,
@@ -312,7 +368,7 @@ void geom_store::create_geometry(nodes_list_store& model_nodes, elementline_list
 	for (auto& nd : model_nodes.nodeMap)
 	{
 		// create a temporary node
-		nodes_store temp_node;
+		node_store temp_node;
 		temp_node = nd.second;
 
 		// Add to the node list
@@ -320,10 +376,28 @@ void geom_store::create_geometry(nodes_list_store& model_nodes, elementline_list
 	}
 
 	// Add to model lines
+	for (auto& ln : model_lineelements.elementlineMap)
+	{
+		// create a temporary node
+		elementline_store temp_line;
+		temp_line = ln.second;
 
+		// Add to the element list
+		this->model_lineelements.add_elementline(temp_line.line_id, &this->model_nodes.nodeMap[temp_line.startNode->node_id],
+			&this->model_nodes.nodeMap[temp_line.endNode->node_id], temp_line.material_id);
+	}
 
 	// Add to model constraints
+	for (auto& cnst : model_constarints.constraintMap)
+	{
+		// create a temporary node
+		constraint_data temp_cnst;
+		temp_cnst = cnst.second;
 
+		// Add to the line list
+		this->model_constarints.add_constraint(temp_cnst.node_id, temp_cnst.constraint_loc,
+			temp_cnst.constraint_type, temp_cnst.constraint_angle);
+	}
 
 	// Add to model loads
 
@@ -347,11 +421,12 @@ void geom_store::create_geometry(nodes_list_store& model_nodes, elementline_list
 
 	// Set the geometry buffers
 	this->model_nodes.set_buffer();
-
+	this->model_lineelements.set_buffer();
+	this->model_constarints.set_buffer();
 
 }
 
-std::pair<glm::vec2, glm::vec2> geom_store::findMinMaxXY(const std::unordered_map<int, nodes_store>& model_nodes)
+std::pair<glm::vec2, glm::vec2> geom_store::findMinMaxXY(const std::unordered_map<int, node_store>& model_nodes)
 {
 	// Initialize min and max values to first node in map
 	glm::vec2 firstNode = model_nodes.begin()->second.node_pt;
@@ -384,7 +459,7 @@ std::pair<glm::vec2, glm::vec2> geom_store::findMinMaxXY(const std::unordered_ma
 	return { minXY, maxXY };
 }
 
-glm::vec2 geom_store::findGeometricCenter(const std::unordered_map<int, nodes_store>& model_nodes)
+glm::vec2 geom_store::findGeometricCenter(const std::unordered_map<int, node_store>& model_nodes)
 {
 	// Function returns the geometric center of the nodes
 		// Initialize the sum with zero

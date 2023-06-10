@@ -43,6 +43,10 @@ public:
 	void update_model_zoom(double& z_scale);
 	void update_model_transperency(bool is_transparent);
 
+	// Function to add/ remove loads, constraints and material properties
+	void set_nodal_constraint(glm::vec2 mouse_click_loc, int& constraint_type, double& constraint_angle, bool is_add);
+	void set_member_load(glm::vec2 mouse_click_loc, double& load_value, double& load_angle, bool is_add);
+
 	// Functions to paint the geometry and results
 	void paint_geometry();
 private:
@@ -65,7 +69,7 @@ private:
 		nodeconstraint_list_store& model_constarints,
 		nodeload_list_store& model_loads);
 
-	std::pair<glm::vec2, glm::vec2> findMinMaxXY(const std::unordered_map<int, nodes_store>& model_nodes);
-	glm::vec2 findGeometricCenter(const std::unordered_map<int, nodes_store>& model_nodes);
+	std::pair<glm::vec2, glm::vec2> findMinMaxXY(const std::unordered_map<int, node_store>& model_nodes);
+	glm::vec2 findGeometricCenter(const std::unordered_map<int, node_store>& model_nodes);
 
 };

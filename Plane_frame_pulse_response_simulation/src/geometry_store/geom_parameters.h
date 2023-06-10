@@ -32,13 +32,13 @@ public:
 	glm::vec2 geom_bound = glm::vec2(0); // Bound magnitude
 	glm::vec2 center = glm::vec2(0); // center of the geometry
 	glm::mat4 modelMatrix = glm::mat4(0); // Geometry model matrix
-	float geom_scale = 0.0f; // Scale of the geometry
-	float geom_transparency = 0.0f; // Value to control the geometry transparency
-	float defl_scale = 0.0f; // Value of deflection scale
+	double geom_scale = 0.0; // Scale of the geometry
+	double geom_transparency = 0.0; // Value to control the geometry transparency
+	double defl_scale = 0.0f; // Value of deflection scale
 
 	// Screen transformations
 	glm::mat4 panTranslation = glm::mat4(0); // Pan translataion
-	float zoom_scale = 0; // Zoom scale
+	double zoom_scale = 0.0; // Zoom scale
 
 	// Standard colors
 	geom_color_theme geom_colors;

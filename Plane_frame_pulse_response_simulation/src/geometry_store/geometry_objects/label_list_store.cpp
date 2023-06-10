@@ -29,8 +29,8 @@ void label_list_store::init(geom_parameters* geom_param_ptr)
 	total_char_count = 0;
 }
 
-void label_list_store::add_text(std::string label, glm::vec2 label_loc, glm::vec2 label_offset,
-	glm::vec3 label_color, double label_angle, bool above_point, bool is_offset)
+void label_list_store::add_text(std::string& label, glm::vec2& label_loc, glm::vec2 label_offset,
+	glm::vec3& label_color, double label_angle, bool above_point, bool is_offset)
 {
 	// Create a temporary element
 	label_text temp_label;
@@ -123,7 +123,7 @@ void label_list_store::update_opengl_uniforms(bool set_modelmatrix, bool set_pan
 	if (set_modelmatrix == true)
 	{
 		// set the model matrix
-		label_shader.setUniform("geom_scale", geom_param_ptr->geom_scale);
+		label_shader.setUniform("geom_scale", static_cast<float>(geom_param_ptr->geom_scale));
 		label_shader.setUniform("transparency", 1.0f);
 
 		label_shader.setUniform("modelMatrix", geom_param_ptr->modelMatrix, false);
@@ -138,19 +138,19 @@ void label_list_store::update_opengl_uniforms(bool set_modelmatrix, bool set_pan
 	if (set_zoomtranslation == true)
 	{
 		// set the zoom translation
-		label_shader.setUniform("zoomscale", geom_param_ptr->zoom_scale);
+		label_shader.setUniform("zoomscale", static_cast<float>(geom_param_ptr->zoom_scale));
 	}
 
 	if (set_transparency == true)
 	{
 		// set the alpha transparency
-		label_shader.setUniform("transparency", geom_param_ptr->geom_transparency);
+		label_shader.setUniform("transparency", static_cast<float>(geom_param_ptr->geom_transparency));
 	}
 
 	if (set_deflscale == true)
 	{
 		// set the deflection scale
-		label_shader.setUniform("deflscale", geom_param_ptr->defl_scale);
+		label_shader.setUniform("deflscale", static_cast<float>(geom_param_ptr->defl_scale));
 	}
 }
 

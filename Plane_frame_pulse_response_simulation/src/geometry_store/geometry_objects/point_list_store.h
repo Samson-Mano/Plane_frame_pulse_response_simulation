@@ -23,7 +23,7 @@ public:
 	point_list_store();
 	~point_list_store();
 	void init(geom_parameters* geom_param_ptr);
-	void add_point(int point_id, glm::vec2 point_loc, glm::vec2 point_offset, glm::vec3 point_color, bool is_offset);
+	void add_point(int& point_id, glm::vec2& point_loc, glm::vec2& point_offset, glm::vec3& point_color, bool is_offset);
 	void set_buffer();
 	void paint_nodes();
 	void clear_nodes();
@@ -32,7 +32,7 @@ private:
 	gBuffers point_buffer;
 	Shader point_shader;
 
-	void get_node_buffer(point_store& point,float* point_vertices, unsigned int& point_v_index, unsigned int* point_indices, unsigned int& point_i_index);
+	void get_node_buffer(point_store& pt,float* point_vertices, unsigned int& point_v_index, unsigned int* point_indices, unsigned int& point_i_index);
 };
 
 

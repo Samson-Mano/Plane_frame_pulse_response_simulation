@@ -26,7 +26,7 @@ void point_list_store::init(geom_parameters* geom_param_ptr)
 	pointMap.clear();
 }
 
-void point_list_store::add_point(int point_id, glm::vec2 point_loc, glm::vec2 point_offset, glm::vec3 point_color, bool is_offset)
+void point_list_store::add_point(int& point_id, glm::vec2& point_loc, glm::vec2& point_offset, glm::vec3& point_color, bool is_offset)
 {
 	// Create a temporary points
 	point_store temp_pt;
@@ -60,7 +60,7 @@ void point_list_store::set_buffer()
 	// Set the node vertices
 	for (auto& pt : pointMap)
 	{
-		// Add  points buffers
+		// Add points buffers
 		get_node_buffer(pt, point_vertices, point_v_index, point_vertex_indices, point_i_index);
 	}
 
@@ -74,9 +74,6 @@ void point_list_store::set_buffer()
 
 	// Create the Node Deflection buffers
 	point_buffer.CreateBuffers(point_vertices, point_vertex_size, point_vertex_indices, point_indices_count, node_layout);
-
-	// Set the point size
-	glPointSize(4.1f);
 
 	// Delete the dynamic array
 	delete[] point_vertices;
@@ -95,7 +92,7 @@ void point_list_store::paint_nodes()
 
 void point_list_store::clear_nodes()
 {
-	// Delete all the labels
+	// Delete all the points
 	point_count = 0;
 	pointMap.clear();
 }
@@ -105,7 +102,7 @@ void point_list_store::update_opengl_uniforms(bool set_modelmatrix, bool set_pan
 	if (set_modelmatrix == true)
 	{
 		// set the model matrix
-		point_shader.setUniform("geom_scale", geom_param_ptr->geom_scale);
+		point_shader.setUniform("geom_scale", static_cast<float>(geom_param_ptr->geom_scale));
 		point_shader.setUniform("transparency", 1.0f);
 
 		point_shader.setUniform("modelMatrix", geom_param_ptr->modelMatrix, false);
@@ -120,19 +117,19 @@ void point_list_store::update_opengl_uniforms(bool set_modelmatrix, bool set_pan
 	if (set_zoomtranslation == true)
 	{
 		// set the zoom translation
-		point_shader.setUniform("zoomscale", geom_param_ptr->zoom_scale);
+		point_shader.setUniform("zoomscale", static_cast<float>(geom_param_ptr->zoom_scale));
 	}
 
 	if (set_transparency == true)
 	{
 		// set the alpha transparency
-		point_shader.setUniform("transparency", geom_param_ptr->geom_transparency);
+		point_shader.setUniform("transparency", static_cast<float>(geom_param_ptr->geom_transparency));
 	}
 
 	if (set_deflscale == true)
 	{
 		// set the deflection scale
-		point_shader.setUniform("deflscale", geom_param_ptr->defl_scale);
+		point_shader.setUniform("deflscale", static_cast<float>(geom_param_ptr->defl_scale));
 	}
 }
 

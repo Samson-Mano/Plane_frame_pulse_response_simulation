@@ -30,7 +30,7 @@ public:
 	label_list_store();
 	~label_list_store();
 	void init(geom_parameters* geom_param_ptr);
-	void add_text(std::string label, glm::vec2 label_loc, glm::vec2 label_offset, glm::vec3 label_color,
+	void add_text(std::string& label, glm::vec2& label_loc, glm::vec2 label_offset, glm::vec3& label_color,
 		double label_angle, bool above_point, bool is_offset);
 	void set_buffer();
 	void paint_text();

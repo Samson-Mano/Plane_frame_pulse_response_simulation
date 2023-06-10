@@ -107,6 +107,11 @@ void mouse_events::zoom_to_fit()
 void mouse_events::left_mouse_click(glm::vec2& loc)
 {
 	// Left mouse single click
+	if ((ct_window->is_add_constraint) == true)
+	{
+		// Add constraint
+		geom->set_nodal_constraint(loc, ct_window->constraint_type, ct_window->constraint_angle, true);
+	}
 
 	/*
 	if ((ld_window->is_add_load) == true)
@@ -115,11 +120,7 @@ void mouse_events::left_mouse_click(glm::vec2& loc)
 		geom->set_nodal_loads(loc, ld_window->loadValue, ld_window->load_angleDegrees, true);
 	}
 
-	if ((ct_window->is_add_constraint) == true)
-	{
-		// Add constraint
-		geom->set_nodal_constraints(loc, ct_window->constraint_selectedOptionIndex, ct_window->constraint_angleDegrees, true);
-	}
+	
 
 	if ((mat_window->is_assign_material) == true)
 	{
@@ -139,7 +140,15 @@ void mouse_events::left_mouse_doubleclick(glm::vec2& loc)
 
 void mouse_events::right_mouse_click(glm::vec2& loc)
 {
+
 	// Right mouse single click
+
+	if ((ct_window->is_add_constraint) == true)
+	{
+		// Remove constraint
+		geom->set_nodal_constraint(loc, ct_window->constraint_type, ct_window->constraint_angle, false);
+	}
+
 	/*
 	if ((ld_window->is_add_load) == true)
 	{
@@ -147,11 +156,6 @@ void mouse_events::right_mouse_click(glm::vec2& loc)
 		geom->set_nodal_loads(loc, ld_window->loadValue, ld_window->load_angleDegrees, false);
 	}
 
-	if ((ct_window->is_add_constraint) == true)
-	{
-		// Remove constraint
-		geom->set_nodal_constraints(loc, ct_window->constraint_selectedOptionIndex, ct_window->constraint_angleDegrees, false);
-	}
 	*/
 	// std::cout << "Right mouse single click" << std::endl;
 }
