@@ -10,7 +10,8 @@ mouse_events::~mouse_events()
 	// Empty destructor
 }
 
-void mouse_events::init(geom_store* geom,load_window* ld_window, constraint_window* ct_window, material_window* mat_window)
+void mouse_events::init(geom_store* geom,load_window* ld_window, constraint_window* ct_window, 
+	material_window* mat_window, pointmass_window* ptm_window)
 {
 	// Intialize the geometry and tool window pointers
 	this->geom = geom;
@@ -19,6 +20,7 @@ void mouse_events::init(geom_store* geom,load_window* ld_window, constraint_wind
 	this->ld_window = ld_window;
 	this->ct_window = ct_window;
 	this->mat_window = mat_window;
+	this->ptm_window = ptm_window;
 }
 
 void mouse_events::mouse_location(glm::vec2& loc)
@@ -113,20 +115,29 @@ void mouse_events::left_mouse_click(glm::vec2& loc)
 		geom->set_nodal_constraint(loc, ct_window->constraint_type, ct_window->constraint_angle, true);
 	}
 
-	/*
+	
 	if ((ld_window->is_add_load) == true)
 	{
 		// Add Loads
-		geom->set_nodal_loads(loc, ld_window->loadValue, ld_window->load_angleDegrees, true);
+		geom->set_member_load(loc,ld_window->load_param,ld_window->load_start_time,ld_window->load_end_time,
+			ld_window->load_amplitude,ld_window->load_angle, true);
 	}
-
-	
 
 	if ((mat_window->is_assign_material) == true)
 	{
 		// Assign material
-		geom->set_line_material(loc);
+		geom->set_elementline_material(loc);
 	}
+
+	if ((ptm_window->is_add_pointmass) == true)
+	{
+		// Add Point Mass
+		geom->set_nodal_pointmass(loc, ptm_window->mass_x, ptm_window->mass_x, ptm_window->mass_xy, true);
+	}
+
+	/*
+	glm::vec2 mouse_click_loc, double& load_param, double& load_start_time, double& load_end_time,
+	double& load_value, double& load_angle, bool is_add)
 	*/
 
 	// std::cout << "Left mouse single click" << std::endl;
@@ -140,23 +151,26 @@ void mouse_events::left_mouse_doubleclick(glm::vec2& loc)
 
 void mouse_events::right_mouse_click(glm::vec2& loc)
 {
-
 	// Right mouse single click
-
 	if ((ct_window->is_add_constraint) == true)
 	{
 		// Remove constraint
 		geom->set_nodal_constraint(loc, ct_window->constraint_type, ct_window->constraint_angle, false);
 	}
 
-	/*
 	if ((ld_window->is_add_load) == true)
 	{
 		// Remove Loads
-		geom->set_nodal_loads(loc, ld_window->loadValue, ld_window->load_angleDegrees, false);
+		geom->set_member_load(loc, ld_window->load_param, ld_window->load_start_time, ld_window->load_end_time,
+			ld_window->load_amplitude, ld_window->load_angle, false);
 	}
 
-	*/
+	if ((ptm_window->is_add_pointmass) == true)
+	{
+		// Remove Point Mass
+		geom->set_nodal_pointmass(loc, ptm_window->mass_x, ptm_window->mass_x, ptm_window->mass_xy, false);
+	}
+
 	// std::cout << "Right mouse single click" << std::endl;
 }
 

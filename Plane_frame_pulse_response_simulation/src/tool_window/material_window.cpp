@@ -12,17 +12,7 @@ material_window::~material_window()
 
 void material_window::init()
 {
-	// Create a default material
-	material_data inpt_material;
-	inpt_material.material_id = 0; // Get the material id
-	inpt_material.material_name = "Default material"; //Default material name
-	inpt_material.mat_density = 7.83 * std::pow(10, -9); // tons/mm3
-	inpt_material.youngs_mod = 2.07 * std::pow(10, 5); //  MPa
-	inpt_material.second_moment_of_area = 100.0; // mm4
-	inpt_material.cs_area = 6014; // mm2
 
-	// Add to the list
-	material_list[0] = inpt_material;
 }
 
 void material_window::render_window()
@@ -39,16 +29,23 @@ void material_window::render_window()
 
 	ImGui::Begin("Materials");
 
-	// Convert material_list to a vector of const char*
 	std::vector<const char*> material_names;
+	std::unordered_map<int, int> material_id_selected_option;
+	int i = 0;
+
 	for (const auto& mat : material_list)
 	{
+		material_id_selected_option[i] = mat.first;
 		material_names.push_back(mat.second.material_name.c_str());
+		i++;
 	}
+	
 
-	ImGui::ListBox("Select Material", &selected_material_option, material_names.data(), material_names.size(), 4);
+	ImGui::ListBox("Select Material", &selected_list_option, material_names.data(), static_cast<unsigned int>(material_names.size()), 4);
 
 	ImGui::Spacing();
+
+	selected_material_option = material_id_selected_option[selected_list_option];
 
 	// Get selected material
 	const material_data& selected_material_data = material_list[selected_material_option];
@@ -65,13 +62,13 @@ void material_window::render_window()
 	ImGui::TextColored(text_color, "Cross-Section Area: %.3f", selected_material_data.cs_area);
 
 	// Diable delete if the selected option is Default (0)
-	const bool is_delete_button_disabled = selected_material_option == 0 ? true : false;
+	const bool is_delete_button_disabled = selected_list_option == 0 ? true : false;
 	ImGui::BeginDisabled(is_delete_button_disabled);
 	if (ImGui::Button("Delete Material")) {
 		// Delete material
 		execute_delete_materialid = selected_material_data.material_id;
 		material_list.erase(selected_material_data.material_id);
-		selected_material_option = 0;
+		selected_list_option = 0;
 	}
 	ImGui::EndDisabled();
 
@@ -81,7 +78,7 @@ void material_window::render_window()
 	// Assign material dropdown
 	if (ImGui::CollapsingHeader("Assign Material "))
 	{
-		// Add Constraint
+		// Assign Material
 		if (is_assign_material == true)
 		{
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.8f, 0.4f, 1.0f)); // brighter green color
@@ -141,7 +138,7 @@ void material_window::render_window()
 			material_list[new_material.material_id] = new_material;
 
 			// Update the combo box
-			selected_material_option = material_list.size() - 1;
+			selected_list_option = static_cast<unsigned int>(material_list.size()) - 1;
 		}
 	}
 
@@ -201,7 +198,7 @@ int material_window::get_unique_material_id()
 		}
 
 		// no node id is missing in an ordered list so add to the end
-		return all_ids.size();
+		return static_cast<unsigned int>(all_ids.size());
 	}
 
 	// id for the first node is 0

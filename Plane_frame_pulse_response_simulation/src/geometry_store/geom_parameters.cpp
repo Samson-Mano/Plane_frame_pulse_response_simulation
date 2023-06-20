@@ -25,4 +25,5 @@ void geom_parameters::init()
 	geom_colors.line_color = glm::vec3(0.0f, 0.2f, 0.6f);
 	geom_colors.constraint_color = glm::vec3(0.6f, 0.0f, 0.6f);
 	geom_colors.load_color = glm::vec3(0.0f, 1.0f, 0.0f);
+	geom_colors.ptmass_color = glm::vec3(0.0f, 1.0f, 0.0f);
 }

@@ -12,9 +12,9 @@ struct node_store
 	int node_id = 0;
 	glm::vec2 node_pt = glm::vec2(0);
 	glm::vec3 node_color = glm::vec3(0);
-	glm::vec2 nodal_displ = glm::vec2(0);
-	glm::vec2 nodal_reaction = glm::vec2(0);
-	double nodal_reaction_angle = 0;
+	//glm::vec2 nodal_displ = glm::vec2(0);
+	//glm::vec2 nodal_reaction = glm::vec2(0);
+	//double nodal_reaction_angle = 0;
 };
 
 class nodes_list_store
@@ -33,8 +33,6 @@ public:
 	void paint_model_nodes();
 	void paint_label_node_ids();
 	void paint_label_node_coords();
-	void paint_nodes_defl();
-	void paint_label_nodes_defl_values();
 	int is_node_hit(glm::vec2& loc);
 	void update_geometry_matrices(bool set_modelmatrix, bool set_pantranslation, bool set_zoomtranslation, bool set_transparency, bool set_deflscale);
 

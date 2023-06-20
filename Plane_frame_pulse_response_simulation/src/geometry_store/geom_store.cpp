@@ -10,7 +10,7 @@ geom_store::~geom_store()
 	// Empty Destructor
 }
 
-void geom_store::init(options_window* op_window, material_window* mat_window, solver_window* sol_window)
+void geom_store::init(options_window* op_window, material_window* mat_window, modal_analysis_window* sol_modal_window)
 {
 	// Initialize
 	// Initialize the geometry parameters
@@ -19,16 +19,20 @@ void geom_store::init(options_window* op_window, material_window* mat_window, so
 	is_geometry_set = false;
 
 	// Initialize the model nodes and lines
-	 model_nodes.init(&geom_param);
-	 model_lineelements.init(&geom_param);
-	 model_constarints.init(&geom_param);
-	 model_loads.init(&geom_param);
+	model_nodes.init(&geom_param);
+	model_lineelements.init(&geom_param);
+	model_constarints.init(&geom_param);
+	model_loads.init(&geom_param);
+	model_ptmass.init(&geom_param);
+
+	// Initialize the modal analysis result nodes and lines
+	modal_result_nodes.init(&geom_param);
+	modal_result_lineelements.init(&geom_param);
 
 	// Add the window pointers
 	this->op_window = op_window;
 	this->mat_window = mat_window;
-	this->sol_window = sol_window;
-
+	this->sol_modal_window = sol_modal_window;
 }
 
 void geom_store::fini()
@@ -41,7 +45,7 @@ void geom_store::fini()
 void geom_store::read_varai2d(std::ifstream& input_file)
 {
 	// Read the varai2D
-// Read the entire file into a string
+	// Read the entire file into a string
 	std::string file_contents((std::istreambuf_iterator<char>(input_file)),
 		std::istreambuf_iterator<char>());
 
@@ -100,7 +104,7 @@ void geom_store::read_varai2d(std::ifstream& input_file)
 
 				// Add to node store list
 				glm::vec2 node_pt = glm::vec2(x, y);
-				model_nodes.add_node(node_id,node_pt);
+				model_nodes.add_node(node_id, node_pt);
 
 				j++;
 			}
@@ -149,16 +153,133 @@ void geom_store::read_varai2d(std::ifstream& input_file)
 		return;
 	}
 
+
+	// add a default material to the material list
+	material_data inpt_material;
+	inpt_material.material_id = 0; // Get the material id
+	inpt_material.material_name = "Default material"; //Default material name
+	inpt_material.mat_density = 7.83 * std::pow(10, -9); // tons/mm3
+	inpt_material.youngs_mod = 2.07 * std::pow(10, 5); //  MPa
+	inpt_material.second_moment_of_area = 100.0; // mm4
+	inpt_material.cs_area = 6014; // mm2
+
+	// Add to materail list
+	mat_window->material_list.clear();
+	mat_window->material_list[inpt_material.material_id] = inpt_material;
+
 	nodeconstraint_list_store model_constarints;
 	model_constarints.init(&geom_param);
 
 	nodeload_list_store model_loads;
 	model_loads.init(&geom_param);
 
+	nodepointmass_list_store model_ptmass;
+	model_ptmass.init(&geom_param);
+
 	// Re-instantitize geom_store object using the nodeMap and lineMap
-	create_geometry(model_nodes, model_lineelements, model_constarints, model_loads);
+	create_geometry(model_nodes, model_lineelements, model_constarints, model_loads, model_ptmass);
+}
+
+void geom_store::read_dxfdata(std::ostringstream& input_data)
+{
+	// Read the data from string
+	std::string inputStr = input_data.str();
+	std::stringstream ss(inputStr);
+
+	std::string temp;
+	std::vector<std::string> lines;
+	while (std::getline(ss, temp))
+	{
+		lines.push_back(temp);
+	}
+
+	int j = 0, i = 0;
+
+
+	// Create a temporary variable to store the nodes
+	nodes_list_store model_nodes;
+	model_nodes.init(&geom_param);
+
+	// Create a temporary variable to store the lines
+	elementline_list_store model_lineelements;
+	model_lineelements.init(&geom_param);
+
+	// Process the lines
+	while (j < lines.size())
+	{
+		std::string line = lines[j];
+		std::string type = line.substr(0, 4);  // Extract the first 4 characters of the line
+
+		// Split the line into comma-separated fields
+		std::istringstream iss(line);
+		std::string field;
+		std::vector<std::string> fields;
+		while (std::getline(iss, field, ','))
+		{
+			fields.push_back(field);
+		}
+
+		if (type == "node")
+		{
+			// Read the nodes
+			int node_id = std::stoi(fields[1]); // node ID
+			float x = std::stof(fields[2]); // Node coordinate x
+			float y = std::stof(fields[3]); // Node coordinate y
+
+			// Add to node Map
+			glm::vec2 node_pt = glm::vec2(x, y);
+			model_nodes.add_node(node_id, node_pt);
+		}
+		else if (type == "line")
+		{
+			int line_id = std::stoi(fields[1]); // line ID
+			int start_node_id = std::stoi(fields[2]); // line id start node
+			int end_node_id = std::stoi(fields[3]); // line id end node
+			int material_id = std::stoi(fields[4]); // materail ID of the line
+
+			// Add to line Map (Note that Nodes needed to be added before the start of line addition !!!!)
+			int mat_id = 0;
+			model_lineelements.add_elementline(line_id, &model_nodes.nodeMap[start_node_id], &model_nodes.nodeMap[end_node_id], mat_id);
+		}
+
+		// Iterate line
+		j++;
+	}
+
+	if (model_nodes.node_count < 1 || model_lineelements.elementline_count < 1)
+	{
+		// No elements added
+		return;
+	}
+
+
+	// add a default material to the material list
+	material_data inpt_material;
+	inpt_material.material_id = 0; // Get the material id
+	inpt_material.material_name = "Default material"; //Default material name
+	inpt_material.mat_density = 7.83 * std::pow(10, -9); // tons/mm3
+	inpt_material.youngs_mod = 2.07 * std::pow(10, 5); //  MPa
+	inpt_material.second_moment_of_area = 100.0; // mm4
+	inpt_material.cs_area = 6014; // mm2
+
+	// Add to materail list
+	mat_window->material_list.clear();
+	mat_window->material_list[inpt_material.material_id] = inpt_material;
+
+	nodeconstraint_list_store model_constarints;
+	model_constarints.init(&geom_param);
+
+	nodeload_list_store model_loads;
+	model_loads.init(&geom_param);
+
+	nodepointmass_list_store model_ptmass;
+	model_ptmass.init(&geom_param);
+
+	// Re-instantitize geom_store object using the nodeMap and lineMap
+	create_geometry(model_nodes, model_lineelements, model_constarints, model_loads, model_ptmass);
 
 }
+
 
 void geom_store::read_rawdata(std::ifstream& input_file)
 {
@@ -203,12 +324,17 @@ void geom_store::update_model_matrix()
 
 	glm::mat4 g_transl = glm::translate(glm::mat4(1.0f), geom_translation);
 
-	geom_param.modelMatrix = g_transl * glm::scale(glm::mat4(1.0f), glm::vec3(geom_param.geom_scale));
+	geom_param.modelMatrix = g_transl * glm::scale(glm::mat4(1.0f), glm::vec3(static_cast<float>(geom_param.geom_scale)));
 
 	// Update the model matrix
 	model_nodes.update_geometry_matrices(true, false, false, false, false);
 	model_lineelements.update_geometry_matrices(true, false, false, false, false);
 	model_constarints.update_geometry_matrices(true, false, false, false, false);
+	model_loads.update_geometry_matrices(true, false, false, false, false);
+	model_ptmass.update_geometry_matrices(true, false, false, false, false);
+
+	// Update the modal analysis result matrix
+
 }
 
 void geom_store::update_model_zoomfit()
@@ -226,6 +352,11 @@ void geom_store::update_model_zoomfit()
 	model_nodes.update_geometry_matrices(false, true, true, false, false);
 	model_lineelements.update_geometry_matrices(false, true, true, false, false);
 	model_constarints.update_geometry_matrices(false, true, true, false, false);
+	model_loads.update_geometry_matrices(false, true, true, false, false);
+	model_ptmass.update_geometry_matrices(false, true, true, false, false);
+
+	// Update the modal analysis result matrix
+
 }
 
 void geom_store::update_model_pan(glm::vec2& transl)
@@ -243,6 +374,11 @@ void geom_store::update_model_pan(glm::vec2& transl)
 	model_nodes.update_geometry_matrices(false, true, false, false, false);
 	model_lineelements.update_geometry_matrices(false, true, false, false, false);
 	model_constarints.update_geometry_matrices(false, true, false, false, false);
+	model_loads.update_geometry_matrices(false, true, false, false, false);
+	model_ptmass.update_geometry_matrices(false, true, false, false, false);
+
+	// Update the modal analysis result matrix
+
 }
 
 void geom_store::update_model_zoom(double& z_scale)
@@ -257,6 +393,11 @@ void geom_store::update_model_zoom(double& z_scale)
 	model_nodes.update_geometry_matrices(false, false, true, false, false);
 	model_lineelements.update_geometry_matrices(false, false, true, false, false);
 	model_constarints.update_geometry_matrices(false, false, true, false, false);
+	model_loads.update_geometry_matrices(false, false, true, false, false);
+	model_ptmass.update_geometry_matrices(false, false, true, false, false);
+
+	// Update the modal analysis result matrix
+
 }
 
 void geom_store::update_model_transperency(bool is_transparent)
@@ -279,39 +420,126 @@ void geom_store::update_model_transperency(bool is_transparent)
 	model_nodes.update_geometry_matrices(false, false, false, true, false);
 	model_lineelements.update_geometry_matrices(false, false, false, true, false);
 	model_constarints.update_geometry_matrices(false, false, false, true, false);
+	model_loads.update_geometry_matrices(false, false, false, true, false);
+	model_ptmass.update_geometry_matrices(false, false, false, true, false);
+
+	// Update the modal analysis result matrix
+
 }
 
 void geom_store::set_nodal_constraint(glm::vec2 mouse_click_loc, int& constraint_type, double& constraint_angle, bool is_add)
 {
-	if (is_geometry_set == false)
-		return;
-
 	// geometry is set so check whether node is hit
-	int node_hit_id = model_nodes.is_node_hit(mouse_click_loc);;
+	int node_hit_id = -1;
 
-	if (node_hit_id != -1)
+	if (is_geometry_set == true)
 	{
-		// Node is hit
-		if (is_add == true)
+		// Check whether the node is hit or not
+		node_hit_id = model_nodes.is_node_hit(mouse_click_loc);;
+
+		if (node_hit_id != -1)
 		{
-			// Add constraints
-			model_constarints.add_constraint(node_hit_id, model_nodes.nodeMap[node_hit_id].node_pt, constraint_type, constraint_angle);
-			model_constarints.set_buffer();
-		}
-		else
-		{
-			// remove constraint
-			model_constarints.delete_constraint(node_hit_id);
-			model_constarints.set_buffer();
+			// Node is hit
+			if (is_add == true)
+			{
+				// Add constraints
+				model_constarints.add_constraint(node_hit_id, model_nodes.nodeMap[node_hit_id].node_pt, constraint_type, constraint_angle);
+				model_constarints.set_buffer();
+			}
+			else
+			{
+				// remove constraint
+				model_constarints.delete_constraint(node_hit_id);
+				model_constarints.set_buffer();
+			}
 		}
 	}
 }
 
-void geom_store::set_member_load(glm::vec2 mouse_click_loc, double& load_value, double& load_angle, bool is_add)
+void geom_store::set_member_load(glm::vec2 mouse_click_loc, double& load_param, double& load_start_time, double& load_end_time,
+	double& load_value, double& load_angle, bool is_add)
 {
+	int line_hit_id = -1;
 
+	if (is_geometry_set == true)
+	{
+		// geometry is set so check whether line is hit
+		line_hit_id = model_lineelements.is_line_hit(mouse_click_loc);
+
+		if (line_hit_id != -1)
+		{
+			// line is hit
+			if (is_add == true)
+			{
+				// Get the location of the load
+				glm::vec2 start_pt = model_lineelements.elementlineMap[line_hit_id].startNode->node_pt;
+				glm::vec2 end_pt = model_lineelements.elementlineMap[line_hit_id].endNode->node_pt;
+
+				glm::vec2 load_loc = start_pt * (1 - static_cast<float>(load_param)) + end_pt * (static_cast<float>(load_param));
+
+				// Add Load
+				model_loads.add_load(line_hit_id, load_loc, load_start_time, load_end_time, load_value, load_angle);
+				model_loads.set_buffer();
+			}
+			else
+			{
+				// remove all the loads on the member
+				model_loads.delete_load(line_hit_id);
+				model_loads.set_buffer();
+			}
+		}
+	}
 }
 
+void geom_store::set_elementline_material(glm::vec2 mouse_click_loc)
+{
+	// Set the element line material
+	int line_hit_id = -1;
+
+	if (is_geometry_set == true)
+	{
+		// Check whether the line is hit or not
+		line_hit_id = model_lineelements.is_line_hit(mouse_click_loc);
+
+		if (line_hit_id != -1)
+		{
+			// Line Material
+			const int& selected_material_option = mat_window->selected_material_option;
+			model_lineelements.elementlineMap[line_hit_id].material_id = mat_window->material_list[selected_material_option].material_id;
+
+			// Update the material ID label
+			model_lineelements.update_material_id_labels();
+		}
+	}
+}
+
+void geom_store::set_nodal_pointmass(glm::vec2 mouse_click_loc, double& pt_mass_x, double& pt_mass_y, double& pt_mass_xy, bool is_add)
+{
+	// Set the nodal point mass
+	int node_hit_id = -1;
+
+	if (is_geometry_set == true)
+	{
+		// Check whether the node is hit or not
+		node_hit_id = model_nodes.is_node_hit(mouse_click_loc);;
+		if (node_hit_id != -1)
+		{
+			// Node is hit
+			if (is_add == true)
+			{
+				// Add Point mass
+				model_ptmass.add_pointmass(node_hit_id, model_nodes.nodeMap[node_hit_id].node_pt, glm::vec2(0), pt_mass_x, pt_mass_y, pt_mass_xy, false);
+				model_ptmass.set_buffer();
+			}
+			else
+			{
+				// remove Point mass
+				model_ptmass.delete_pointmass(node_hit_id);
+				model_ptmass.set_buffer();
+			}
+		}
+	}
+}
 
 void geom_store::paint_geometry()
 {
@@ -319,19 +547,51 @@ void geom_store::paint_geometry()
 		return;
 
 	// Clean the back buffer and assign the new color to it
-	 glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT);
 
+	// Modal Analysis
+	if (sol_modal_window->is_show_window == true)
+	{
+		if (sol_modal_window->execute_open == true)
+		{
+			// Execute the open sequence
+			sol_modal_window->execute_open = false;
+		}
+		
+		if (sol_modal_window->execute_modal_analysis == true)
+		{
+			// Execute the Modal Analysis
+
+		}
+
+		if (sol_modal_window->execute_close == true)
+		{
+			// Execute the close sequence
+			sol_modal_window->execute_close = false;
+		}
+	}
+
+
+	// Paint the model
+	paint_model();
+}
+
+void geom_store::paint_model()
+{
+	// Paint the model
 
 	model_constarints.paint_constraints();
 	model_lineelements.paint_elementlines();
 	model_nodes.paint_model_nodes();
+	model_loads.paint_loads();
+	model_ptmass.paint_pointmass();
 
 	if (op_window->is_show_nodenumber == true)
 	{
 		// Show model node number
 		model_nodes.paint_label_node_ids();
 	}
-	
+
 	if (op_window->is_show_nodecoord == true)
 	{
 		// Show model node coordinate
@@ -349,10 +609,31 @@ void geom_store::paint_geometry()
 		// Show line length label
 		model_lineelements.paint_label_line_lengths();
 	}
+
+	if (op_window->is_show_loadvalue == true)
+	{
+		// Show load value lable
+		model_loads.paint_load_labels();
+		model_ptmass.paint_pointmass_label();
+	}
+
+	if (mat_window->is_show_window == true)
+	{
+		// Show the materials of line member
+		if (mat_window->execute_delete_materialid != -1)
+		{
+			// Delete material
+			update_delete_material(mat_window->execute_delete_materialid);
+			mat_window->execute_delete_materialid = -1;
+		}
+		// Show the material ID
+		model_lineelements.paint_lines_material_id();
+	}
 }
 
+
 void geom_store::create_geometry(nodes_list_store& model_nodes, elementline_list_store& model_lineelements,
-	nodeconstraint_list_store& model_constarints, nodeload_list_store& model_loads)
+	nodeconstraint_list_store& model_constarints, nodeload_list_store& model_loads, nodepointmass_list_store& model_ptmass)
 {
 	// Reinitialize the model geometry
 	is_geometry_set = false;
@@ -361,6 +642,7 @@ void geom_store::create_geometry(nodes_list_store& model_nodes, elementline_list
 	this->model_lineelements.init(&geom_param);
 	this->model_constarints.init(&geom_param);
 	this->model_loads.init(&geom_param);
+	this->model_ptmass.init(&geom_param);
 
 	//________________________________________________
 
@@ -378,7 +660,7 @@ void geom_store::create_geometry(nodes_list_store& model_nodes, elementline_list
 	// Add to model lines
 	for (auto& ln : model_lineelements.elementlineMap)
 	{
-		// create a temporary node
+		// create a temporary line element
 		elementline_store temp_line;
 		temp_line = ln.second;
 
@@ -390,17 +672,37 @@ void geom_store::create_geometry(nodes_list_store& model_nodes, elementline_list
 	// Add to model constraints
 	for (auto& cnst : model_constarints.constraintMap)
 	{
-		// create a temporary node
+		// create a temporary constraint
 		constraint_data temp_cnst;
 		temp_cnst = cnst.second;
 
-		// Add to the line list
+		// Add to the constraint list
 		this->model_constarints.add_constraint(temp_cnst.node_id, temp_cnst.constraint_loc,
 			temp_cnst.constraint_type, temp_cnst.constraint_angle);
 	}
 
 	// Add to model loads
+	for (auto& load : model_loads.loadMap)
+	{
+		// create a temporary load
+		load_data temp_load;
+		temp_load = load.second;
 
+		// Add to the load list
+		this->model_loads.add_load(temp_load.line_id, temp_load.load_loc, temp_load.load_start_time,
+			temp_load.load_end_time, temp_load.load_value, temp_load.load_angle);
+	}
+
+	// Add to model point loads
+	for (auto& ptmass : model_ptmass.ptmassMap)
+	{
+		// Create a temporart point mass
+		nodepointmass_data temp_ptmass;
+		temp_ptmass = ptmass.second;
+
+		// Add to the point mass list
+
+	}
 
 
 	// Geometry is loaded
@@ -423,7 +725,8 @@ void geom_store::create_geometry(nodes_list_store& model_nodes, elementline_list
 	this->model_nodes.set_buffer();
 	this->model_lineelements.set_buffer();
 	this->model_constarints.set_buffer();
-
+	this->model_loads.set_buffer();
+	this->model_ptmass.set_buffer();
 }
 
 std::pair<glm::vec2, glm::vec2> geom_store::findMinMaxXY(const std::unordered_map<int, node_store>& model_nodes)
@@ -473,4 +776,25 @@ glm::vec2 geom_store::findGeometricCenter(const std::unordered_map<int, node_sto
 	return sum / static_cast<float>(model_nodes.size());
 }
 
+void geom_store::update_delete_material(int& del_material_id)
+{
+	// Update delete material
+	bool is_del_material_found = false;
 
+	// Delete the material
+	for (int i = 0; i < model_lineelements.elementlineMap.size(); i++)
+	{
+		if (model_lineelements.elementlineMap[i].material_id == del_material_id)
+		{
+			// Delete material is removed and the material ID of that element to 0
+			model_lineelements.elementlineMap[i].material_id = 0;
+			is_del_material_found = true;
+		}
+	}
+
+	// Update the material ID label
+	if (is_del_material_found == true)
+	{
+		model_lineelements.update_material_id_labels();
+	}
+}

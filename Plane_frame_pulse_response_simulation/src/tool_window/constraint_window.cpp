@@ -80,7 +80,7 @@ void constraint_window::render_window()
 		if (ImGui::InputText("##InputAngle", angle_str, IM_ARRAYSIZE(angle_str), ImGuiInputTextFlags_CharsDecimal))
 		{
 			// convert the input string to float
-			angle_input = atof(angle_str);
+			angle_input = static_cast<float>(atof(angle_str));
 			// limit the value to 0 - 360 range
 			angle_input = fmaxf(0.0f, fminf(angle_input, 360.0f));
 			// set the angle to input value
@@ -274,9 +274,9 @@ bool constraint_window::get_image_min_max_coord(ImVec2& window_pos, ImVec2& wind
 	glm::vec2 bot_left = glm::vec2(-(rect_min_size * size_factor), -(rect_min_size * size_factor));
 
 	//___________________________________________________________________________________________________________
-	double radians = ((orientation + 90) * 3.14159365f) / 180.0f; // convert degrees to radians
-	double cos_theta = cos(radians);
-	double sin_theta = sin(radians);
+	float radians = ((static_cast<float>(orientation)+90.0f) * 3.14159365f) / 180.0f; // convert degrees to radians
+	float cos_theta = cos(radians);
+	float sin_theta = sin(radians);
 
 	// Rotated point of the corners
 	ImVec2 rotated_pt_top_left = ImVec2((top_left.x * cos_theta) - (top_left.y * sin_theta),

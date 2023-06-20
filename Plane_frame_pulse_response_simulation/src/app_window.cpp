@@ -67,20 +67,22 @@ void app_window::init()
 	is_glwindow_success = true;
 
 	// Intialize tool windows
-    ct_window.init();
-	ld_window.init();
-	mat_window.init();
-	op_window.init();
+    ct_window.init(); // Constraint window
+	ld_window.init(); // Load window
+	mat_window.init(); // Material window
+	op_window.init(); // Option window
+	ptm_window.init(); // Point mass window
+	sol_modal_window.init(); // Modal analysis solver window
 
 	// Initialize the geometry
-	geom.init(&op_window,&mat_window,&sol_window);
+	geom.init(&op_window,&mat_window,&sol_modal_window);
 
 
 	// Set the mouse button callback function with the user pointer pointing to the mouseHandler object
 	glfwSetWindowUserPointer(window, &mouse_Handler);
 
 	// Passing the address of geom and window dimensions to mouse handler
-	mouse_Handler.init(&geom, &ld_window, &ct_window, &mat_window);
+	mouse_Handler.init(&geom, &ld_window, &ct_window, &mat_window,&ptm_window);
 
 	// Pass the address of options window, material window, solver window
 	// geom.add_window_ptr(&op_window, &mat_window, &fe_window);
@@ -205,6 +207,12 @@ void app_window::menu_events()
 				file_menu.filemenu_event(import_varai2d, geom);
 				isWindowSizeChanging = true;
 			}
+			if (ImGui::MenuItem("Import *.dxf file"))
+			{
+				// Handle menu Import AutoCAD dxf file
+				file_menu.filemenu_event(import_dxf_data, geom);
+				isWindowSizeChanging = true;
+			}
 			if (ImGui::MenuItem("Import raw data"))
 			{
 				// Handle menu Import raw data
@@ -229,26 +237,34 @@ void app_window::menu_events()
 			if (ImGui::MenuItem("Constraints"))
 			{
 				// Handle menu Add Constraint
-				//if (geom.is_geometry_set == true)
-				//{
-				ct_window.is_show_window = true;
-				//}
+				if (geom.is_geometry_set == true)
+				{
+					ct_window.is_show_window = true;
+				}
 			}
 			if (ImGui::MenuItem("Loads"))
 			{
 				// Handle menu Add Load
-				//if (geom.is_geometry_set == true)
-				//{
-				ld_window.is_show_window = true;
-				//}
+				if (geom.is_geometry_set == true)
+				{
+					ld_window.is_show_window = true;
+				}
+			}
+			if (ImGui::MenuItem("Point Mass"))
+			{
+				// Handle menu Add Point Mass
+				if (geom.is_geometry_set == true)
+				{
+					ptm_window.is_show_window = true;
+				}
 			}
 			if (ImGui::MenuItem("Material"))
 			{
 				// Handle menu Edit Materials
-				//if (geom.is_geometry_set == true)
-				//{
-				mat_window.is_show_window = true;
-				//}
+				if (geom.is_geometry_set == true)
+				{
+					mat_window.is_show_window = true;
+				}
 			}
 			if (ImGui::MenuItem("View Options"))
 			{
@@ -260,6 +276,15 @@ void app_window::menu_events()
 		// Solve menu item
 		if (ImGui::BeginMenu("Solve"))
 		{
+			if (ImGui::MenuItem("Modal Analysis"))
+			{
+				// Handle menu Modal Analysis
+				if (geom.is_geometry_set == true)
+				{
+					sol_modal_window.is_show_window = true;
+					sol_modal_window.execute_open = true;
+				}
+			}
 			if (ImGui::MenuItem("FE Analysis"))
 			{
 				// Handle menu FE Analysis
@@ -280,6 +305,8 @@ void app_window::menu_events()
 	ld_window.render_window();
 	mat_window.render_window();
 	op_window.render_window();
+	ptm_window.render_window();
+	sol_modal_window.render_window();
 	//fe_window.render_window();
 
 	// Pop the custom font after using it

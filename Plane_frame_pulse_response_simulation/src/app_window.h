@@ -19,7 +19,9 @@
 #include "tool_window/load_window.h"
 #include "tool_window/material_window.h"
 #include "tool_window/options_window.h"
+#include "tool_window/pointmass_window.h"
 #include "tool_window/solver_window.h"
+#include "tool_window/modal_analysis_window.h"
 
 class app_window
 {
@@ -45,7 +47,9 @@ public:
 	constraint_window ct_window;
 	options_window op_window;
 	material_window mat_window;
+	pointmass_window ptm_window;
 	solver_window sol_window;
+	modal_analysis_window sol_modal_window;
 
 	app_window();
 	~app_window();

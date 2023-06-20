@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <string>
 #include <unordered_map>
 #include <filesystem>
 #include <GL/glew.h>
@@ -12,12 +13,12 @@
 
 struct material_data
 {
-	unsigned int material_id;
-	std::string material_name;
-	double youngs_mod;
-	double second_moment_of_area;
-	double mat_density;
-	double cs_area;
+	unsigned int material_id = 0;
+	std::string material_name = "";
+	double youngs_mod = 0.0;
+	double second_moment_of_area = 0.0;
+	double mat_density = 0.0;
+	double cs_area = 0.0;
 };
 
 class material_window
@@ -36,5 +37,6 @@ public:
 	void render_window();
 	static glm::vec3 get_standard_color(int color_index);
 private:
+	int selected_list_option = 0;
 	int get_unique_material_id();
 };

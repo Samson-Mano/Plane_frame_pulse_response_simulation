@@ -1,6 +1,7 @@
 #pragma once
 #include "nodes_list_store.h"
 #include "../geometry_objects/line_list_store.h"
+#include "../../tool_window/material_window.h"
 
 struct elementline_store
 {
@@ -25,17 +26,18 @@ public:
 	void paint_elementlines();
 	void paint_label_line_ids();
 	void paint_label_line_lengths();
-	void paint_lines_defl();
+	void paint_lines_material_id();
 	int is_line_hit(glm::vec2& loc);
+	bool isClickPointOnLine(const glm::vec2& clickPoint, const glm::vec2& lineStart, const glm::vec2& lineEnd, float threshold);
+	void update_material_id_labels();
 	void update_geometry_matrices(bool set_modelmatrix, bool set_pantranslation, bool set_zoomtranslation, bool set_transparency, bool set_deflscale);
-
 
 private:
 	geom_parameters* geom_param_ptr = nullptr;
 	line_list_store element_lines;
 	label_list_store line_id_labels;
 	label_list_store line_length_labels;
-
+	label_list_store line_material_id_labels;
 
 
 };

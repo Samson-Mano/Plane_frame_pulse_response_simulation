@@ -49,7 +49,7 @@ void load_window::render_window()
 		if (ImGui::InputText("##InputLoad", load_str, IM_ARRAYSIZE(load_str), ImGuiInputTextFlags_CharsDecimal))
 		{
 			// convert the input string to int
-			load_input = atof(load_str);
+			load_input = static_cast<float>(atof(load_str));
 			// set the load value to input value
 			load_amplitude = load_input;
 		}
@@ -88,7 +88,7 @@ void load_window::render_window()
 		if (ImGui::InputText("##InputStartTime", loadstarttime_str, IM_ARRAYSIZE(loadstarttime_str), ImGuiInputTextFlags_CharsDecimal))
 		{
 			// convert the input string to int
-			loadstarttime_input = atof(loadstarttime_str);
+			loadstarttime_input = static_cast<float>(atof(loadstarttime_str));
 			// set the load start time to input value
 			load_start_time = loadstarttime_input;
 		}
@@ -127,7 +127,7 @@ void load_window::render_window()
 		if (ImGui::InputText("##InputEndTime", loadendtime_str, IM_ARRAYSIZE(loadendtime_str), ImGuiInputTextFlags_CharsDecimal))
 		{
 			// convert the input string to int
-			loadendtime_input = atof(loadendtime_str);
+			loadendtime_input = static_cast<float>(atof(loadendtime_str));
 			// set the load End Time to input value
 			if (loadendtime_input > load_start_time)
 			{
@@ -135,7 +135,7 @@ void load_window::render_window()
 			}
 			else
 			{
-				loadendtime_input = load_end_time;
+				loadendtime_input = static_cast<float>(load_end_time);
 			}
 		}
 
@@ -173,7 +173,7 @@ void load_window::render_window()
 		if (ImGui::InputText("##LengthParam", ldratio_str, IM_ARRAYSIZE(ldratio_str), ImGuiInputTextFlags_CharsDecimal))
 		{
 			// convert the input string to float
-			ld_ratio = atof(ldratio_str);
+			ld_ratio = static_cast<float>(atof(ldratio_str));
 			// limit the value to 0 - 1.0 range
 			ld_ratio = fmaxf(0.0f, fminf(ld_ratio, 1.0f));
 			// set the angle to input value
@@ -219,7 +219,7 @@ void load_window::render_window()
 		if (ImGui::InputText("##InputAngle", angle_str, IM_ARRAYSIZE(angle_str), ImGuiInputTextFlags_CharsDecimal)) // ImGuiInputTextFlags_CharsDecimal
 		{
 			// convert the input string to float
-			angle_input = atof(angle_str);
+			angle_input = static_cast<float>(atof(angle_str));
 			// limit the value to 0 - 360 range
 			angle_input = fmaxf(0.0f, fminf(angle_input, 360.0f));
 			// set the angle to input value
@@ -310,7 +310,14 @@ void load_window::draw_load()
 		ImVec2 img_pos_bot_right(0, 0);
 		ImVec2 img_pos_bot_left(0, 0);
 
-		bool draw_img = get_image_min_max_coord(window_pos, window_size, img_pos_top_left, img_pos_top_right, img_pos_bot_right, img_pos_bot_left, load_angle);
+		double orientation = load_angle;
+
+		if (load_amplitude < 0)
+		{
+			orientation = orientation + 180.0;
+		}
+
+		bool draw_img = get_image_min_max_coord(window_pos, window_size, img_pos_top_left, img_pos_top_right, img_pos_bot_right, img_pos_bot_left, orientation);
 
 		if (draw_img == true)
 		{
@@ -370,7 +377,7 @@ bool load_window::get_image_min_max_coord(ImVec2& window_pos, ImVec2& window_siz
 	glm::vec2 bot_right = glm::vec2((rect_min_size * size_factor), -(rect_min_size * size_factor));
 	glm::vec2 bot_left = glm::vec2(-(rect_min_size * size_factor), -(rect_min_size * size_factor));
 
-	float radians = ((orientation + 90) * 3.14159365f) / 180.0f; // convert degrees to radians
+	float radians = ((static_cast<float>(orientation)+90.0f) * 3.14159365f) / 180.0f; // convert degrees to radians
 	float cos_theta = cos(radians);
 	float sin_theta = sin(radians);
 

@@ -157,7 +157,7 @@ void label_list_store::update_opengl_uniforms(bool set_modelmatrix, bool set_pan
 void label_list_store::get_label_buffer(label_text& lb, float* vertices, unsigned int& vertex_index,
 	unsigned int* indices, unsigned int& indices_index)
 {
-	float font_scale = geom_param_ptr->font_size / geom_param_ptr->geom_scale;
+	float font_scale = static_cast<float>(geom_param_ptr->font_size / geom_param_ptr->geom_scale);
 
 	// Find the label total width and total height
 	float total_label_width = 0.0f;

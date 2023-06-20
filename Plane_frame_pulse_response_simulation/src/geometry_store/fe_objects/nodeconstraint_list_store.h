@@ -31,5 +31,5 @@ private:
 	Shader constraint_shader;
 	Texture constraint_texture;
 
-	void get_texture_buffer(constraint_data& qt, float* constraint_vertices, unsigned int& constraint_v_index, unsigned int* constraint_indices, unsigned int& constraint_i_index);
+	void get_constraint_buffer(constraint_data& qt, float* constraint_vertices, unsigned int& constraint_v_index, unsigned int* constraint_indices, unsigned int& constraint_i_index);
 };

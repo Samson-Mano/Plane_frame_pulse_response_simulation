@@ -2,6 +2,7 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/glm.hpp>
+#include <sstream>
 #include "geometry_buffers/font_atlas.h"
 
 struct geom_color_theme
@@ -11,6 +12,7 @@ struct geom_color_theme
 	glm::vec3 line_color = glm::vec3(0);
 	glm::vec3 constraint_color = glm::vec3(0);
 	glm::vec3 load_color = glm::vec3(0);
+	glm::vec3 ptmass_color = glm::vec3(0);
 };
 
 class geom_parameters
@@ -19,6 +21,12 @@ public:
 	// Standard sizes
 	const float font_size = static_cast<float>(16.0f * std::pow(10, -5));
 	const float node_circle_radii = 0.005f;
+
+	// Precision for various values
+	const int length_precision = 3;
+	const int coord_precision = 3;
+	const int load_precision = 2;
+	const int defl_precision = 6;
 
 	// File path
 	std::filesystem::path resourcePath = "";

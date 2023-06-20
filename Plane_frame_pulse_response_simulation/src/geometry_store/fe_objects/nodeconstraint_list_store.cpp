@@ -40,7 +40,7 @@ void nodeconstraint_list_store::add_constraint(int& node_id, glm::vec2 constrain
 	temp_c_data.constraint_loc = constraint_loc;
 	temp_c_data.constraint_type = constraint_type;
 	temp_c_data.constraint_angle = constraint_angle;
-	glm::vec3 constraint_color = geom_param_ptr->geom_colors.constraint_color;
+	// glm::vec3 constraint_color = geom_param_ptr->geom_colors.constraint_color;
 
 	// Insert the constarint data to unordered map
 	// Searching for node_id
@@ -105,7 +105,7 @@ void nodeconstraint_list_store::set_buffer()
 		constraint_data qt = qtx.second;
 
 		// Add the texture buffer
-		get_texture_buffer(qt, constraint_vertices, constraint_v_index, constraint_indices, constraint_i_index);
+		get_constraint_buffer(qt, constraint_vertices, constraint_v_index, constraint_indices, constraint_i_index);
 	}
 
 	VertexBufferLayout constraint_layout;
@@ -169,11 +169,11 @@ void nodeconstraint_list_store::update_geometry_matrices(bool set_modelmatrix, b
 	if (set_deflscale == true)
 	{
 		// set the deflection scale
-		constraint_shader.setUniform("deflscale", static_cast<float>(geom_param_ptr->defl_scale));
+		// constraint_shader.setUniform("deflscale", static_cast<float>(geom_param_ptr->defl_scale));
 	}
 }
 
-void nodeconstraint_list_store::get_texture_buffer(constraint_data& qt, float* constraint_vertices, unsigned int& constraint_v_index, unsigned int* constraint_indices, unsigned int& constraint_i_index)
+void nodeconstraint_list_store::get_constraint_buffer(constraint_data& qt, float* constraint_vertices, unsigned int& constraint_v_index, unsigned int* constraint_indices, unsigned int& constraint_i_index)
 {
 	// texture coordinate
 	glm::vec2 tex_coord_topleft = glm::vec2(0);

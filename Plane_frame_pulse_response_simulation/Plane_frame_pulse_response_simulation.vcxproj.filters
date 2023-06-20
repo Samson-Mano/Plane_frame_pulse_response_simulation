@@ -120,6 +120,24 @@
     <ClCompile Include="src\geometry_store\fe_objects\nodeload_list_store.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\tool_window\pointmass_window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\geometry_store\fe_objects\nodepointmass_list_store.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tool_window\modal_analysis_window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fe_solver\modal_analysis_solver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\geometry_store\modal_result_objects\modal_nodes_list_store.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\geometry_store\modal_result_objects\modal_elemetnline_list_store.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\dlls\freetype.dll" />
@@ -132,6 +150,10 @@
     <None Include="resources\shaders\text_vert_shader.vert" />
     <None Include="resources\shaders\constraint_frag_shader.frag" />
     <None Include="resources\shaders\constraint_vert_shader.vert" />
+    <None Include="resources\shaders\load_frag_shader.frag" />
+    <None Include="resources\shaders\load_vert_shader.vert" />
+    <None Include="resources\shaders\ptmass_frag_shader.frag" />
+    <None Include="resources\shaders\ptmass_vert_shader.vert" />
   </ItemGroup>
   <ItemGroup>
     <Font Include="resources\fonts\CanadaDBNormal.ttf" />
@@ -147,6 +169,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="resources\images\load_img.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\images\pic_3D_circle.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
@@ -266,6 +291,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\geometry_store\fe_objects\nodeload_list_store.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tool_window\pointmass_window.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\geometry_store\fe_objects\nodepointmass_list_store.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tool_window\modal_analysis_window.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fe_solver\modal_analysis_solver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\geometry_store\modal_result_objects\modal_nodes_list_store.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\geometry_store\modal_result_objects\modal_elemetnline_list_store.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
