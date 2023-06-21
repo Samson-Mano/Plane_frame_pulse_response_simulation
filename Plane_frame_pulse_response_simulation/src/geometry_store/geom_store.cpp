@@ -17,6 +17,7 @@ void geom_store::init(options_window* op_window, material_window* mat_window, mo
 	geom_param.init();
 
 	is_geometry_set = false;
+	is_modal_analysis_complete = false;
 
 	// Initialize the model nodes and lines
 	model_nodes.init(&geom_param);
@@ -549,37 +550,17 @@ void geom_store::paint_geometry()
 	// Clean the back buffer and assign the new color to it
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	// Modal Analysis
-	if (sol_modal_window->is_show_window == true)
-	{
-		if (sol_modal_window->execute_open == true)
-		{
-			// Execute the open sequence
-			sol_modal_window->execute_open = false;
-		}
-		
-		if (sol_modal_window->execute_modal_analysis == true)
-		{
-			// Execute the Modal Analysis
-
-		}
-
-		if (sol_modal_window->execute_close == true)
-		{
-			// Execute the close sequence
-			sol_modal_window->execute_close = false;
-		}
-	}
-
-
 	// Paint the model
 	paint_model();
+
+	// Modal Analysis
+	paint_modal_analysis();
+
 }
 
 void geom_store::paint_model()
 {
 	// Paint the model
-
 	model_constarints.paint_constraints();
 	model_lineelements.paint_elementlines();
 	model_nodes.paint_model_nodes();
@@ -631,12 +612,88 @@ void geom_store::paint_model()
 	}
 }
 
+void geom_store::paint_modal_analysis()
+{
+	// Check closing sequence for modal analysis window
+	if (sol_modal_window->execute_close == true)
+	{
+		// Execute the close sequence
+		if (is_modal_analysis_complete == true)
+		{
+			// Modal analysis is complete remove the transparency for the model
+			update_model_transperency(false);
+		}
+
+		sol_modal_window->execute_close = false;
+	}
+
+
+	// Check whether the modal analysis solver window is open or not
+	if (sol_modal_window->is_show_window == false)
+	{
+		return;
+	}
+
+	// Paint the modal analysis result
+	if (is_modal_analysis_complete == true)
+	{
+		// Paint the modal lines
+		modal_result_lineelements.paint_modal_elementlines();
+
+		// Paint the modal nodes
+		modal_result_nodes.paint_modal_nodes();
+
+		// Paint result text
+		if (sol_modal_window->show_result_text_values == true)
+		{
+			// Paint the modal result vector
+			modal_result_nodes.paint_label_node_vectors();
+		}
+	}
+
+
+	if (sol_modal_window->execute_open == true)
+	{
+		// Execute the open sequence
+		if (is_modal_analysis_complete == true)
+		{
+			// Modal analysis is already complete so set the transparency for the model
+			update_model_transperency(true);
+		}
+		sol_modal_window->execute_open = false;
+	}
+
+	if (sol_modal_window->execute_modal_analysis == true)
+	{
+		// Execute the Modal Analysis
+		modal_analysis_solver md_solver;
+		md_solver.modal_analysis_start(model_nodes,
+			model_lineelements,
+			model_constarints,
+			model_ptmass,
+			mat_window->material_list,
+			modal_result_nodes,
+			modal_result_lineelements,
+			is_modal_analysis_complete);
+
+		// Check whether the modal analysis is complete or not
+		if (is_modal_analysis_complete == true)
+		{
+			// Modal analysis is already complete so set the transparency for the model
+			update_model_transperency(true);
+		}
+
+		sol_modal_window->execute_modal_analysis = false;
+	}
+
+}
 
 void geom_store::create_geometry(nodes_list_store& model_nodes, elementline_list_store& model_lineelements,
 	nodeconstraint_list_store& model_constarints, nodeload_list_store& model_loads, nodepointmass_list_store& model_ptmass)
 {
 	// Reinitialize the model geometry
 	is_geometry_set = false;
+	is_modal_analysis_complete = false;
 
 	this->model_nodes.init(&geom_param);
 	this->model_lineelements.init(&geom_param);

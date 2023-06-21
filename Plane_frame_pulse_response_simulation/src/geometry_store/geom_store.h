@@ -14,6 +14,9 @@
 #include "../tool_window/solver_window.h"
 #include "../tool_window/modal_analysis_window.h"
 
+// Solver
+#include "../fe_solver/modal_analysis_solver.h"
+
 // FE Objects
 #include "fe_objects/nodes_list_store.h"
 #include "fe_objects/elementline_list_store.h"
@@ -22,8 +25,9 @@
 #include "fe_objects/nodepointmass_list_store.h"
 
 // FE Results Modal Analysis
+#include "modal_result_objects/modal_analysis_result_store.h"
 #include "modal_result_objects/modal_nodes_list_store.h"
-#include "modal_result_objects/modal_elemetnline_list_store.h"
+#include "modal_result_objects/modal_elementline_store.h"
 
 class geom_store
 {
@@ -72,15 +76,17 @@ private:
 	nodepointmass_list_store model_ptmass;
 
 	// Modal Analysis results
+	modal_analysis_result_store modal_results;
 	modal_nodes_list_store modal_result_nodes;
-	modal_elemetnline_list_store modal_result_lineelements;
-
+	modal_elementline_list_store modal_result_lineelements;
 
 	// View options ptr and Material window ptr
 	options_window* op_window = nullptr;
 	material_window* mat_window = nullptr;
 	modal_analysis_window* sol_modal_window = nullptr;
-
+	
+	// Analysis 
+	bool is_modal_analysis_complete = false;
 
 	// Create geometry private functions
 	void create_geometry(nodes_list_store& model_nodes,
@@ -93,5 +99,6 @@ private:
 	glm::vec2 findGeometricCenter(const std::unordered_map<int, node_store>& model_nodes);
 	void update_delete_material(int& del_material_id);
 
-	void paint_model();
+	void paint_model(); // Paint the model
+	void paint_modal_analysis(); // Paint the modal analysis results
 };

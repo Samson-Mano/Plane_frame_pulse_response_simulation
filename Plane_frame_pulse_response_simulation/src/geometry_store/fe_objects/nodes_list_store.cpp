@@ -19,7 +19,6 @@ void nodes_list_store::init(geom_parameters* geom_param_ptr)
 	node_points.init(geom_param_ptr);
 	node_id_labels.init(geom_param_ptr);
 	node_coord_labels.init(geom_param_ptr);
-	// node_displ_labels.init(geom_param_ptr);
 
 	// Clear the nodes
 	node_count = 0;

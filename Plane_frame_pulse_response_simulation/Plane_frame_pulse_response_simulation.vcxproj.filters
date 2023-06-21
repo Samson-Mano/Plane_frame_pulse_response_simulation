@@ -135,7 +135,10 @@
     <ClCompile Include="src\geometry_store\modal_result_objects\modal_nodes_list_store.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\geometry_store\modal_result_objects\modal_elemetnline_list_store.cpp">
+    <ClCompile Include="src\geometry_store\modal_result_objects\modal_elementline_store.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\geometry_store\modal_result_objects\modal_analysis_result_store.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -308,7 +311,10 @@
     <ClInclude Include="src\geometry_store\modal_result_objects\modal_nodes_list_store.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\geometry_store\modal_result_objects\modal_elemetnline_list_store.h">
+    <ClInclude Include="src\geometry_store\modal_result_objects\modal_elementline_store.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\geometry_store\modal_result_objects\modal_analysis_result_store.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -11,18 +11,18 @@ struct modal_elementline_store
 	modal_node_store* endNode; // end node
 };
 
-class modal_elemetnline_list_store
+class modal_elementline_list_store
 {
 public:
 	unsigned int elementline_count = 0;
 	std::unordered_map<int, modal_elementline_store> elementlineMap; // Create an unordered_map to store nodes with ID as key
 
-	modal_elemetnline_list_store();
-	~modal_elemetnline_list_store();
+	modal_elementline_list_store();
+	~modal_elementline_list_store();
 	void init(geom_parameters* geom_param_ptr);
-	void add_elementline(int& line_id, modal_node_store* startNode, modal_node_store* endNode, int& material_id);
+	void add_modal_elementline(int& line_id, modal_node_store* startNode, modal_node_store* endNode, int& material_id);
 	void set_buffer();
-	void paint_elementlines();
+	void paint_modal_elementlines();
 	void update_geometry_matrices(bool set_modelmatrix, bool set_pantranslation, bool set_zoomtranslation, bool set_transparency, bool set_deflscale);
 private:
 	geom_parameters* geom_param_ptr = nullptr;

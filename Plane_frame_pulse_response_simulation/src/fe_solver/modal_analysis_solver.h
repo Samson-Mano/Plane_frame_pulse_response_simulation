@@ -1,8 +1,17 @@
 #pragma once
 #include <iostream>
 #include <fstream>
-#include "../tool_window/modal_analysis_window.h"
-#include "../geometry_store/geom_store.h"
+
+// FE Objects
+#include "../geometry_store/fe_objects/nodes_list_store.h"
+#include "../geometry_store/fe_objects/elementline_list_store.h"
+#include "../geometry_store/fe_objects/nodeconstraint_list_store.h"
+#include "../geometry_store/fe_objects/nodepointmass_list_store.h"
+
+// FE Results Modal Analysis
+#include "../geometry_store/modal_result_objects/modal_analysis_result_store.h"
+#include "../geometry_store/modal_result_objects/modal_nodes_list_store.h"
+#include "../geometry_store/modal_result_objects/modal_elementline_store.h"
 
 #pragma warning(push)
 #pragma warning (disable : 26451)
@@ -22,8 +31,52 @@ public:
 
 	modal_analysis_solver();
 	~modal_analysis_solver();
-	void modal_analysis_start();
+	void modal_analysis_start(const nodes_list_store& model_nodes,
+		const elementline_list_store& model_lineelements,
+		const nodeconstraint_list_store& model_constarints,
+		const nodepointmass_list_store& model_ptmass,
+		const std::unordered_map<int, material_data>& material_list,
+		modal_analysis_result_store& modal_results,
+		modal_nodes_list_store& modal_result_nodes, 
+		modal_elementline_list_store& modal_result_lineelements,
+		bool& is_modal_analysis_complete);
 private:
+	std::unordered_map<int, int> nodeid_map;
+
+	void get_global_stiffness_matrix(Eigen::MatrixXd& globalStiffnessMatrix,
+		const elementline_list_store& model_lineelements,
+		const std::unordered_map<int, material_data>& material_list, 
+		const nodeconstraint_list_store& model_constarints,
+		std::ofstream& output_file);
+
+	void get_element_stiffness_matrix(Eigen::MatrixXd& elementStiffnessMatrix,
+		const elementline_store& ln,
+		const material_data& elementline_material,
+		const nodeconstraint_list_store& model_constarints,
+		std::ofstream& output_file);
+
+	void get_global_pointmass_matrix(Eigen::MatrixXd& globalPointMassMatrix,
+		const nodes_list_store& model_nodes,
+		const nodepointmass_list_store& model_ptmass,
+		std::ofstream& output_file);
+
+	void get_global_consistentmass_matrix(Eigen::MatrixXd& globalConsistentMassMatrix,
+		const elementline_list_store& model_lineelements,
+		const std::unordered_map<int, material_data>& material_list,
+		const nodeconstraint_list_store& model_constarints,
+		std::ofstream& output_file);
+
+	void get_element_consistentmass_matrix(Eigen::MatrixXd& elementConsistentMassMatrix,
+		const elementline_store& ln,
+		const material_data& elementline_material,
+		const nodeconstraint_list_store& model_constarints,
+		std::ofstream& output_file);
+
+	void get_global_dof_matrix(Eigen::MatrixXd& globalDOFMatrix,
+		const nodes_list_store& model_nodes,
+		const nodeconstraint_list_store& model_constarints,
+		int& reducedDOF,
+		std::ofstream& output_file);
 
 };
 
