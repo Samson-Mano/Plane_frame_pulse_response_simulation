@@ -36,6 +36,7 @@ public:
 		const nodeconstraint_list_store& model_constarints,
 		const nodepointmass_list_store& model_ptmass,
 		const std::unordered_map<int, material_data>& material_list,
+		const bool& is_include_consistent_mass_matrix,
 		modal_analysis_result_store& modal_results,
 		modal_nodes_list_store& modal_result_nodes, 
 		modal_elementline_list_store& modal_result_lineelements,
@@ -49,6 +50,7 @@ private:
 		const nodeconstraint_list_store& model_constarints,
 		std::ofstream& output_file);
 
+	
 	void get_element_stiffness_matrix(Eigen::MatrixXd& elementStiffnessMatrix,
 		const elementline_store& ln,
 		const material_data& elementline_material,
@@ -77,6 +79,18 @@ private:
 		const nodeconstraint_list_store& model_constarints,
 		int& reducedDOF,
 		std::ofstream& output_file);
+
+	void get_reduced_global_matrices(Eigen::MatrixXd& globalStiffnessMatrix, 
+		Eigen::MatrixXd& globalMassMatrix,
+		Eigen::MatrixXd& globalDOFMatrix,
+		Eigen::MatrixXd& reduced_globalStiffnessMatrix,
+		Eigen::MatrixXd& reduced_globalMassMatrix,
+		const int& numDOF,
+		std::ofstream& output_file);
+
+	void sort_eigen_values_vectors(Eigen::VectorXd& eigenvalues,
+		Eigen::MatrixXd& eigenvectors,
+		const int& m_size);
 
 };
 

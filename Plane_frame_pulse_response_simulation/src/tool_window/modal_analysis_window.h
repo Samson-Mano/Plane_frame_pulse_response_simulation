@@ -9,6 +9,7 @@ class modal_analysis_window
 {
 public:
 	bool is_show_window = false;
+	bool is_include_consistent_mass_matrix = true; // flag to include consistent mass matrix
 	bool execute_modal_analysis = false; // Main solver run event flag
 	bool execute_open = false; // Solver window open event flag
 	bool execute_close = false; // Closing of solution window event flag

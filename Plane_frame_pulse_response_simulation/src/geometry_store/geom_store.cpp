@@ -672,6 +672,8 @@ void geom_store::paint_modal_analysis()
 			model_constarints,
 			model_ptmass,
 			mat_window->material_list,
+			sol_modal_window->is_include_consistent_mass_matrix,
+			modal_results,
 			modal_result_nodes,
 			modal_result_lineelements,
 			is_modal_analysis_complete);

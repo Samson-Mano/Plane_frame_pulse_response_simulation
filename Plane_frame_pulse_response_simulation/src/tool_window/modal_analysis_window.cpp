@@ -27,6 +27,10 @@ void modal_analysis_window::render_window()
 
 	ImGui::Begin("Modal Analysis Solver");
 
+	// Add check boxes to Include consistent mass matrix
+	ImGui::Checkbox("Include Consistent Mass", &is_include_consistent_mass_matrix);
+	ImGui::Spacing();
+
 	// Add a Modal Analysis button
 	if (ImGui::Button("Modal Analysis"))
 	{
