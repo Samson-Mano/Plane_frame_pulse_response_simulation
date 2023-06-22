@@ -168,8 +168,8 @@ void file_events::export_rawdata_geometry(geom_store& geom)
 		return;
 	}
 
-	//// Write the model as raw data
-	// geom.write_rawdata(output_file);
+	// Write the model as raw data
+	geom.write_rawdata(output_file);
 
 	// Close the file
 	output_file.close();
@@ -188,8 +188,8 @@ void file_events::import_rawdata_geometry(geom_store& geom)
 		return;
 	}
 
-	//// Read the model as raw text data
-	// geom.read_rawdata(input_file);
+	// Read the model as raw text data
+	geom.read_rawdata(input_file);
 
 	input_file.close();
 }

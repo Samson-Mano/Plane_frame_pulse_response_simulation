@@ -27,6 +27,7 @@ void geom_store::init(options_window* op_window, material_window* mat_window, mo
 	model_ptmass.init(&geom_param);
 
 	// Initialize the modal analysis result nodes and lines
+	modal_results.clear_data();
 	modal_result_nodes.init(&geom_param);
 	modal_result_lineelements.init(&geom_param);
 
@@ -224,8 +225,8 @@ void geom_store::read_dxfdata(std::ostringstream& input_data)
 		{
 			// Read the nodes
 			int node_id = std::stoi(fields[1]); // node ID
-			float x = std::stof(fields[2]); // Node coordinate x
-			float y = std::stof(fields[3]); // Node coordinate y
+			float x = std::stod(fields[2]); // Node coordinate x
+			float y = std::stod(fields[3]); // Node coordinate y
 
 			// Add to node Map
 			glm::vec2 node_pt = glm::vec2(x, y);
@@ -284,10 +285,227 @@ void geom_store::read_dxfdata(std::ostringstream& input_data)
 
 void geom_store::read_rawdata(std::ifstream& input_file)
 {
+	// Read the Raw Data
+	// Read the entire file into a string
+	std::string file_contents((std::istreambuf_iterator<char>(input_file)),
+		std::istreambuf_iterator<char>());
+
+	// Split the string into lines
+	std::istringstream iss(file_contents);
+	std::string line;
+	std::vector<std::string> lines;
+	while (std::getline(iss, line))
+	{
+		lines.push_back(line);
+	}
+
+	int j = 0, i = 0;
+
+	// Create a temporary variable to store the nodes
+	nodes_list_store model_nodes;
+	model_nodes.init(&geom_param);
+
+	// Create a temporary variable to store the lines
+	elementline_list_store model_lineelements;
+	model_lineelements.init(&geom_param);
+
+	// Constraint data store
+	nodeconstraint_list_store model_constarints;
+	model_constarints.init(&geom_param);
+
+	// Load data store
+	nodeload_list_store model_loads;
+	model_loads.init(&geom_param);
+
+	// Point mass data store
+	nodepointmass_list_store model_ptmass;
+	model_ptmass.init(&geom_param);
+
+	// Material data list
+	std::unordered_map<int, material_data> mat_data;
+
+	// Process the lines
+	while (j < lines.size())
+	{
+		std::string line = lines[j];
+		std::string type = line.substr(0, 4);  // Extract the first 4 characters of the line
+
+		// Split the line into comma-separated fields
+		std::istringstream iss(line);
+		std::string field;
+		std::vector<std::string> fields;
+		while (std::getline(iss, field, ','))
+		{
+			fields.push_back(field);
+		}
+
+		if (type == "node")
+		{
+			// Read the nodes
+			int node_id = std::stoi(fields[1]); // node ID
+			float x = std::stod(fields[2]); // Node coordinate x
+			float y = std::stod(fields[3]); // Node coordinate y
+
+			// Add to node Map
+			glm::vec2 node_pt = glm::vec2(x, y);
+			model_nodes.add_node(node_id, node_pt);
+		}
+		else if (type == "line")
+		{
+			int line_id = std::stoi(fields[1]); // line ID
+			int start_node_id = std::stoi(fields[2]); // line id start node
+			int end_node_id = std::stoi(fields[3]); // line id end node
+			int material_id = std::stoi(fields[4]); // materail ID of the line
+
+			// Add to line Map (Note that Nodes needed to be added before the start of line addition !!!!)
+			model_lineelements.add_elementline(line_id, &model_nodes.nodeMap[start_node_id], &model_nodes.nodeMap[end_node_id], material_id);
+		}
+		else if (type == "cnst")
+		{
+			int cnst_nd_id = std::stoi(fields[1]); // constraint node ID
+			int cnst_type = std::stoi(fields[2]); // constraint type 
+			double cnst_angle = std::stod(fields[3]); // constraint angle
+
+			// Add to constraint map
+			model_constarints.add_constraint(cnst_nd_id, model_nodes.nodeMap[cnst_nd_id].node_pt, cnst_type, cnst_angle);
+		}
+		else if (type == "load")
+		{
+			int load_ln_id = std::stoi(fields[1]); // load line ID
+			double load_val = std::stod(fields[2]); // load value
+			double load_angle = std::stod(fields[3]); // load angle
+			double load_start_time = std::stod(fields[4]); // load start time
+			double load_end_time = std::stod(fields[5]); // load end time
+			double load_loc_x = std::stod(fields[6]); // load loc x
+			double load_loc_y = std::stod(fields[7]); // load loc y
+
+			// Add to load map
+			model_loads.add_load(load_ln_id, glm::vec2(load_loc_x, load_loc_y), load_start_time, load_end_time, load_val, load_angle);
+		}
+		else if (type == "ptms")
+		{
+			int ptm_nd_id = std::stoi(fields[1]); // load node ID
+			double ptm_x = std::stod(fields[2]); // point mass x
+			double ptm_y = std::stod(fields[3]); // point mass y
+			double ptm_xy = std::stod(fields[4]); // point mass xy
+
+			// Add to load map
+			model_ptmass.add_pointmass(ptm_nd_id, model_nodes.nodeMap[ptm_nd_id].node_pt, glm::vec2(0), ptm_x, ptm_y, ptm_xy, false);
+		}
+		else if (type == "mtrl")
+		{
+			// Material data
+			material_data inpt_material;
+			inpt_material.material_id = std::stoi(fields[1]); // Get the material id
+			inpt_material.material_name = fields[2]; // Get the material name
+			inpt_material.youngs_mod = std::stod(fields[3]); // Get the material youngs modulus
+			inpt_material.second_moment_of_area = std::stod(fields[4]); // Get the material second moment of area
+			inpt_material.mat_density = std::stod(fields[5]); // Get the material density 
+			inpt_material.cs_area = std::stod(fields[6]); // Get the material cross section area
+
+			// Add to materail list
+			mat_data[inpt_material.material_id] = inpt_material;
+		}
+
+		// Iterate line
+		j++;
+	}
+
+
+	// Data loaded create the geometry
+	if (model_nodes.node_count < 1 || model_lineelements.elementline_count < 1)
+	{
+		// No elements added
+		return;
+	}
+
+	//Add the materail list
+	mat_window->material_list = mat_data;
+
+	// Re-instantitize geom_store object using the nodeMap and lineMap
+	create_geometry(model_nodes, model_lineelements, model_constarints, model_loads, model_ptmass);
 }
 
 void geom_store::write_rawdata(std::ofstream& output_file)
 {
+	// Write all the nodes
+	for (auto& node : model_nodes.nodeMap)
+	{
+		// Print the node details
+		node_store nd_val = node.second;
+
+		output_file << "node, "
+			<< nd_val.node_id << ", "
+			<< nd_val.node_pt.x << ", "
+			<< nd_val.node_pt.y << std::endl;
+	}
+
+	// Write all the lines
+	for (auto& line : model_lineelements.elementlineMap)
+	{
+		// Print the line details
+		elementline_store ln_val = line.second;
+
+		output_file << "line, "
+			<< ln_val.line_id << ", "
+			<< ln_val.startNode->node_id << ", "
+			<< ln_val.endNode->node_id << ", "
+			<< ln_val.material_id << std::endl;
+	}
+
+	// Write all the constraints
+	for (auto& cnst : model_constarints.constraintMap)
+	{
+		// Print the constraint details
+		constraint_data cn_val = cnst.second;
+
+		output_file << "cnst, "
+			<< cn_val.node_id << ", "
+			<< cn_val.constraint_type << ", "
+			<< cn_val.constraint_angle << std::endl;
+	}
+
+	// Write all the loads
+	for (auto& ld : model_loads.loadMap)
+	{
+		// Print the load details
+		load_data ld_val = ld.second;
+
+		output_file << "load, "
+			<< ld_val.line_id << ", "  // load line ID
+			<< ld_val.load_value << ", " // load value
+			<< ld_val.load_angle << ", " // load angle
+			<< ld_val.load_start_time << ", " // load start time
+			<< ld_val.load_end_time << ", " // load end time
+			<< ld_val.load_loc.x << ", " // load loc x
+			<< ld_val.load_loc.y << std::endl; // load loc y
+	}
+
+	// Write all the point mass
+	for (auto& ptmass : model_ptmass.ptmassMap)
+	{
+		// Print the Point Mass details
+		nodepointmass_data ptm = ptmass.second;
+
+		output_file << "ptms, "
+			<< ptm.node_id << ", "
+			<< ptm.ptmass_x << ", "
+			<< ptm.ptmass_y << ", "
+			<< ptm.ptmass_xy << std::endl;
+	}
+
+	// Write all the material property
+	for (auto& mat : mat_window->material_list)
+	{
+		material_data mat_d = mat.second;
+		output_file << "mtrl, "
+			<< mat_d.material_id << ", "
+			<< mat_d.material_name << ", "
+			<< mat_d.youngs_mod << ", "
+			<< mat_d.second_moment_of_area << ", "
+			<< mat_d.mat_density << ", "
+			<< mat_d.cs_area << std::endl;
+	}
 }
 
 
@@ -760,7 +978,8 @@ void geom_store::create_geometry(nodes_list_store& model_nodes, elementline_list
 		temp_ptmass = ptmass.second;
 
 		// Add to the point mass list
-
+		this->model_ptmass.add_pointmass(temp_ptmass.node_id, temp_ptmass.ptmass_loc, temp_ptmass.ptmass_defl,
+			temp_ptmass.ptmass_x, temp_ptmass.ptmass_y, temp_ptmass.ptmass_xy, temp_ptmass.is_offset);
 	}
 
 
@@ -786,6 +1005,12 @@ void geom_store::create_geometry(nodes_list_store& model_nodes, elementline_list
 	this->model_constarints.set_buffer();
 	this->model_loads.set_buffer();
 	this->model_ptmass.set_buffer();
+
+
+	// Initialize the modal analysis result nodes and lines
+	modal_results.clear_data();
+	modal_result_nodes.init(&geom_param);
+	modal_result_lineelements.init(&geom_param);
 }
 
 std::pair<glm::vec2, glm::vec2> geom_store::findMinMaxXY(const std::unordered_map<int, node_store>& model_nodes)
