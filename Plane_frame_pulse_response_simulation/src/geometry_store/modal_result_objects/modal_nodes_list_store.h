@@ -11,21 +11,24 @@ struct modal_node_store
 {
 	int node_id = 0;
 	glm::vec2 node_pt = glm::vec2(0);
-	glm::vec3 node_color = glm::vec3(0);
-	glm::vec2 nodal_displ = glm::vec2(0);
+
+	// Modal results (mode number, (x, y, rot_xy))
+	std::unordered_map<int, glm::vec3> node_modal_displ;
+	std::unordered_map<int, glm::vec3> node_modal_displ_color;
 };
 
 class modal_nodes_list_store
 {
 public:
 	unsigned int node_count = 0;
-	std::unordered_map<int, modal_node_store> nodeMap; // Create an unordered_map to store nodes with ID as key
-	double max_modal_displacement = 0.0;
+	std::unordered_map<int, modal_node_store> modal_nodeMap; // Create an unordered_map to store nodes with ID as key
+	std::unordered_map<int, double> max_node_displ; // Stores the maximum nodal displacement for the whole model
 
-	modal_nodes_list_store();
+		modal_nodes_list_store();
 	~modal_nodes_list_store();
 	void init(geom_parameters* geom_param_ptr);
-	void add_result_node(int& node_id, glm::vec2& node_pt, glm::vec2 nodal_displ);
+	void clear_data();
+	void add_result_node(int& node_id, glm::vec2& node_pt, std::unordered_map<int, glm::vec3> node_modal_displ);
 	void set_buffer();
 	void paint_modal_nodes();
 	void paint_label_node_vectors();

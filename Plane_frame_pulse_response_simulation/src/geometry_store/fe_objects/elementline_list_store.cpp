@@ -38,11 +38,11 @@ void elementline_list_store::add_elementline(int& line_id, node_store* startNode
 	// Check whether the node_id is already there
 	if (elementlineMap.find(line_id) != elementlineMap.end())
 	{
-		// Node ID already exist (do not add)
+		// Element ID already exist (do not add)
 		return;
 	}
 
-	// Insert to the nodes
+	// Insert to the lines
 	elementlineMap.insert({ line_id, temp_line });
 	elementline_count++;
 
@@ -51,6 +51,7 @@ void elementline_list_store::add_elementline(int& line_id, node_store* startNode
 	glm::vec2 start_node_pt = (*startNode).node_pt;
 	glm::vec2 end_node_pt = (*endNode).node_pt;
 
+	//__________________________ Add the lines
 	element_lines.add_line(line_id, start_node_pt, end_node_pt,
 		glm::vec2(0), glm::vec2(0), temp_color, temp_color, false);
 

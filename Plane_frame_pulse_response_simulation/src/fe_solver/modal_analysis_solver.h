@@ -80,17 +80,37 @@ private:
 		int& reducedDOF,
 		std::ofstream& output_file);
 
-	void get_reduced_global_matrices(Eigen::MatrixXd& globalStiffnessMatrix, 
-		Eigen::MatrixXd& globalMassMatrix,
-		Eigen::MatrixXd& globalDOFMatrix,
-		Eigen::MatrixXd& reduced_globalStiffnessMatrix,
-		Eigen::MatrixXd& reduced_globalMassMatrix,
+	void get_reduced_global_matrices(Eigen::MatrixXd& reduced_globalStiffnessMatrix,
+		Eigen::MatrixXd& reduced_globalMassMatrix, 
+		const Eigen::MatrixXd& globalStiffnessMatrix,
+		const Eigen::MatrixXd& globalMassMatrix,
+		const Eigen::MatrixXd& globalDOFMatrix,
 		const int& numDOF,
+		std::ofstream& output_file);
+
+	void get_global_modal_vector_matrix(Eigen::MatrixXd& eigenvectors,
+		const Eigen::MatrixXd& eigenvectors_reduced,
+		const Eigen::MatrixXd& globalDOFMatrix,
+		const int& numDOF,
+		int& reducedDOF,
 		std::ofstream& output_file);
 
 	void sort_eigen_values_vectors(Eigen::VectorXd& eigenvalues,
 		Eigen::MatrixXd& eigenvectors,
 		const int& m_size);
+
+	void normalize_eigen_vectors(Eigen::MatrixXd& eigenvectors,
+		const int& m_size);
+
+	Eigen::MatrixXd convert_vector_to_1Dmatrix(const std::vector<double>& vec);
+
+	void map_analysis_results(const nodes_list_store& model_nodes,
+		const elementline_list_store& model_lineelements,
+		const nodeconstraint_list_store& model_constarints,
+		const modal_analysis_result_store& modal_results,
+		modal_nodes_list_store& modal_result_nodes,
+		modal_elementline_list_store& modal_result_lineelements,
+		std::ofstream& output_file);
 
 };
 

@@ -21,10 +21,19 @@ void modal_nodes_list_store::init(geom_parameters* geom_param_ptr)
 
 	// Clear the nodes
 	node_count = 0;
-	nodeMap.clear();
+	modal_nodeMap.clear();
+	max_node_displ.clear();
 }
 
-void modal_nodes_list_store::add_result_node(int& node_id, glm::vec2& node_pt, glm::vec2 nodal_displ)
+void modal_nodes_list_store::clear_data()
+{
+	// Clear the results
+	node_count = 0;
+	modal_nodeMap.clear();
+	max_node_displ.clear();
+}
+
+void modal_nodes_list_store::add_result_node(int& node_id, glm::vec2& node_pt, std::unordered_map<int, glm::vec3> node_modal_displ)
 {
 	// Add result nodes
 

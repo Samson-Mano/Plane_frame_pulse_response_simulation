@@ -37,6 +37,18 @@ void modal_analysis_solver::modal_analysis_start(const nodes_list_store& model_n
 		return;
 	}
 
+	// check whether masses are valid
+	if (is_include_consistent_mass_matrix == false)
+	{
+		// No consistent mass
+		// Check whether there are point masses
+		if (model_ptmass.ptmass_count == 0)
+		{
+			// No Point mass, no consistent mass
+			return;
+		}
+	}
+
 	//____________________________________________
 
 	// Create a node ID map (to create a nodes as ordered and numbered from 0,1,2...n)
@@ -109,8 +121,8 @@ void modal_analysis_solver::modal_analysis_start(const nodes_list_store& model_n
 		model_constarints,
 		reducedDOF,
 		output_file);
-	
-	
+
+
 	//____________________________________________________________________________________________________________________
 	// Create Reduced Global Mass and stiffness matrix
 	Eigen::MatrixXd  reduced_globalStiffnessMatrix(reducedDOF, reducedDOF);
@@ -120,11 +132,11 @@ void modal_analysis_solver::modal_analysis_start(const nodes_list_store& model_n
 	Eigen::MatrixXd reduced_globalMassMatrix(reducedDOF, reducedDOF);
 	reduced_globalMassMatrix.setZero();
 
-	get_reduced_global_matrices(globalStiffnessMatrix, 
+	get_reduced_global_matrices(reduced_globalStiffnessMatrix,
+		reduced_globalMassMatrix,
+		globalStiffnessMatrix,
 		globalMassMatrix,
 		globalDOFMatrix,
-		reduced_globalStiffnessMatrix, 
-		reduced_globalMassMatrix, 
 		numDOF,
 		output_file);
 
@@ -132,7 +144,7 @@ void modal_analysis_solver::modal_analysis_start(const nodes_list_store& model_n
 	// Solve generalized Eigen value matrix using Cholesky decomposition
 	// Compute the Cholesky decomposition of Global Mass matrix
 	// Generalized Symmetric Definite Eigenproblems 
-	
+
 	Eigen::LLT<Eigen::MatrixXd> llt;
 	llt.compute(reduced_globalMassMatrix);
 
@@ -168,39 +180,53 @@ void modal_analysis_solver::modal_analysis_start(const nodes_list_store& model_n
 	//  Find the eigen value & eigen vector of eigen value problem Z_matrix
 	//  Z_matrix = L_inv_matrix * stiff_matrix * L_inv_matrix^T
 
-	Eigen::MatrixXd Z_matrix = L_inv_matrix * globalStiffnessMatrix * L_inv_matrix.transpose();
+	Eigen::MatrixXd Z_matrix = L_inv_matrix * reduced_globalStiffnessMatrix * L_inv_matrix.transpose();
+
+	if (print_matrix == true)
+	{
+		// Print the Inverse L - Matrix
+		output_file << "Z Matrix" << std::endl;
+		output_file << Z_matrix << std::endl;
+		output_file << std::endl;
+	}
 
 	// Compute the eigenvalues and eigenvectors
 	Eigen::EigenSolver<Eigen::MatrixXd> eigenSolver(Z_matrix);
 
 	if (eigenSolver.info() != Eigen::Success) {
 		// Eigenvalue problem failed to converge
-		output_file << "Cholesky Decomposition Failed !!!!! " << std::endl;
+		output_file << "Eigenvalue problem failed to converge !!!!! " << std::endl;
 		return;
 	}
 
 	// Get the eigenvalues and eigenvectors
 	Eigen::VectorXd eigenvalues = eigenSolver.eigenvalues().real(); // Real part of eigenvalues
-	Eigen::MatrixXd eigenvectors = L_inv_matrix.transpose() * eigenSolver.eigenvectors().real(); // Real part of eigenvectors
+	Eigen::MatrixXd eigenvectors_reduced = L_inv_matrix.transpose() * eigenSolver.eigenvectors().real(); // Real part of eigenvectors
 
 	// sort the eigen value and eigen vector (ascending)
-	sort_eigen_values_vectors(eigenvalues, eigenvectors, reducedDOF);
+	sort_eigen_values_vectors(eigenvalues, eigenvectors_reduced, reducedDOF);
+
+	// Normailize eigen vectors
+	normalize_eigen_vectors(eigenvectors_reduced, reducedDOF);
+
+	//____________________________________________________________________________________________________________________
 
 	if (print_matrix == true)
 	{
+		// Eigenvalue problem failed to converge
+		output_file << "Modal Analysis Success !!!!! " << std::endl;
+
 		// Print the Eigen values
 		output_file << "Eigen Values " << std::endl;
 		output_file << eigenvalues << std::endl;
 		output_file << std::endl;
-
-		// Print the Eigen vectors
-		output_file << "Eigen Vectors " << std::endl;
-		output_file << eigenvectors << std::endl;
-		output_file << std::endl;
-
-		// Eigenvalue problem failed to converge
-		output_file << "Modal Analysis Success !!!!! " << std::endl;
 	}
+
+	// Convert the reduced eigenvectors to eigen vectors for the whole model (including the nodes with supports)
+	Eigen::MatrixXd eigenvectors(numDOF, reducedDOF);
+	eigenvectors.setZero();
+
+	get_global_modal_vector_matrix(eigenvectors, eigenvectors_reduced, globalDOFMatrix, numDOF, reducedDOF, output_file);
 
 	//____________________________________________________________________________________________________________________
 	// Store the results
@@ -209,6 +235,8 @@ void modal_analysis_solver::modal_analysis_start(const nodes_list_store& model_n
 
 	// Clear the results
 	modal_results.clear_data();
+	modal_result_nodes.clear_data();
+
 
 	// Add the eigen values and eigen vectors
 	for (int i = 0; i < reducedDOF; i++)
@@ -216,14 +244,24 @@ void modal_analysis_solver::modal_analysis_start(const nodes_list_store& model_n
 		double eigen_val = eigenvalues(i);
 		std::vector<double> eigen_vec;
 
-		for (int j = 0; j < reducedDOF; j++)
+		for (int j = 0; j < numDOF; j++)
 		{
 			eigen_vec.push_back(eigenvectors(j, i));
 		}
 
 		modal_results.add_eigen_data(i, eigen_val, eigen_vec);
 	}
+	modal_results.add_node_map(nodeid_map);
+
+
+	// Add the modal analysis results to node, element
+
+
+
+
 	//____________________________________________________________________________________________________________________
+
+	output_file.close();
 
 }
 
@@ -269,7 +307,7 @@ void modal_analysis_solver::get_global_stiffness_matrix(Eigen::MatrixXd& globalS
 void modal_analysis_solver::get_element_stiffness_matrix(Eigen::MatrixXd& elementStiffnessMatrix,
 	const elementline_store& ln,
 	const material_data& elementline_material,
-	const nodeconstraint_list_store& model_constarints, 
+	const nodeconstraint_list_store& model_constarints,
 	std::ofstream& output_file)
 {
 	// Get element stiffness matrix
@@ -470,7 +508,7 @@ void modal_analysis_solver::get_element_consistentmass_matrix(Eigen::MatrixXd& e
 	double dx = ln.endNode->node_pt.x - ln.startNode->node_pt.x;
 	double dy = -1.0 * (ln.endNode->node_pt.y - ln.startNode->node_pt.y);
 
-	// Compute the length of the truss element
+	// Compute the length of the frame element
 	double eLength = std::sqrt((dx * dx) + (dy * dy));
 
 	// Compute the direction cosines
@@ -569,9 +607,9 @@ void modal_analysis_solver::get_element_consistentmass_matrix(Eigen::MatrixXd& e
 }
 
 
-void modal_analysis_solver::get_global_dof_matrix(Eigen::MatrixXd& globalDOFMatrix, 
-	const nodes_list_store& model_nodes, 
-	const nodeconstraint_list_store& model_constarints, 
+void modal_analysis_solver::get_global_dof_matrix(Eigen::MatrixXd& globalDOFMatrix,
+	const nodes_list_store& model_nodes,
+	const nodeconstraint_list_store& model_constarints,
 	int& reducedDOF,
 	std::ofstream& output_file)
 {
@@ -609,7 +647,7 @@ void modal_analysis_solver::get_global_dof_matrix(Eigen::MatrixXd& globalDOFMatr
 			{
 				// Pin End
 
-				globalDOFMatrix((nd_map * 3) + 0, 0) = 0.0; 
+				globalDOFMatrix((nd_map * 3) + 0, 0) = 0.0;
 				globalDOFMatrix((nd_map * 3) + 1, 0) = 0.0;
 				globalDOFMatrix((nd_map * 3) + 2, 0) = 1.0; // XY Rotation is free to move
 
@@ -646,11 +684,11 @@ void modal_analysis_solver::get_global_dof_matrix(Eigen::MatrixXd& globalDOFMatr
 	}
 }
 
-void modal_analysis_solver::get_reduced_global_matrices(Eigen::MatrixXd& globalStiffnessMatrix,
-	Eigen::MatrixXd& globalMassMatrix,
-	Eigen::MatrixXd& globalDOFMatrix,
-	Eigen::MatrixXd& reduced_globalStiffnessMatrix,
+void modal_analysis_solver::get_reduced_global_matrices(Eigen::MatrixXd& reduced_globalStiffnessMatrix,
 	Eigen::MatrixXd& reduced_globalMassMatrix,
+	const Eigen::MatrixXd& globalStiffnessMatrix,
+	const Eigen::MatrixXd& globalMassMatrix,
+	const Eigen::MatrixXd& globalDOFMatrix,
 	const int& numDOF,
 	std::ofstream& output_file)
 {
@@ -702,7 +740,7 @@ void modal_analysis_solver::get_reduced_global_matrices(Eigen::MatrixXd& globalS
 	}
 }
 
-void modal_analysis_solver::sort_eigen_values_vectors(Eigen::VectorXd& eigenvalues, Eigen::MatrixXd& eigenvectors,const int& m_size)
+void modal_analysis_solver::sort_eigen_values_vectors(Eigen::VectorXd& eigenvalues, Eigen::MatrixXd& eigenvectors, const int& m_size)
 {
 	int p = 0;
 	int q = 0;
@@ -729,5 +767,198 @@ void modal_analysis_solver::sort_eigen_values_vectors(Eigen::VectorXd& eigenvalu
 			}
 		}
 	}
+}
+
+void modal_analysis_solver::normalize_eigen_vectors(Eigen::MatrixXd& eigenvectors,
+	const int& m_size)
+{
+	// Normalize eigen vectors
+	int p = 0;
+	int q = 0;
+
+	// loop throught each column
+	for (p = 0; p < m_size; p++)
+	{
+		double max_modal_vector = 0.0;
+
+		// Loop through each row
+		for (q = 0; q < m_size; q++)
+		{
+			if (std::abs(eigenvectors(q, p)) > max_modal_vector)
+			{
+				// Max modal vector in the column (for particular mode)
+				max_modal_vector = std::abs(eigenvectors(q, p));
+			}
+		}
+
+		// Normalize the column using maximum modal vector
+		for (q = 0; q < m_size; q++)
+		{
+			eigenvectors(q, p) = eigenvectors(q, p) / max_modal_vector;
+
+			// Round the eigen vectors to 6 digit precision after normalizing
+			eigenvectors(q, p) = std::round(eigenvectors(q, p) * 1000000) / 1000000;
+		}
+	}
+}
+
+Eigen::MatrixXd convert_vector_to_1Dmatrix(const std::vector<double>& vec)
+{
+	// Convert Vector to 1D Column matrix
+	int vec_size = static_cast<int>(vec.size());
+
+	Eigen::MatrixXd mat(vec_size, 1);
+
+	for (int i = 0; i < vec_size; ++i)
+	{
+		mat.coeffRef(i, 0) = vec.at(i);
+	}
+	return mat;
+}
+
+void modal_analysis_solver::get_global_modal_vector_matrix(Eigen::MatrixXd& eigenvectors,
+	const Eigen::MatrixXd& eigenvectors_reduced,
+	const Eigen::MatrixXd& globalDOFMatrix,
+	const int& numDOF,
+	int& reducedDOF,
+	std::ofstream& output_file)
+{
+	// Global eigen vector Matrix
+	// Loop throug the Degree of freedom of indices
+
+	// J loops through number of modes (along the column)
+	for (int j = 0; j < reducedDOF; j++)
+	{
+		int s = 0;
+		// i loops through the number of nodes (along the row)
+		for (int i = 0; i < numDOF; i++)
+		{
+			if (globalDOFMatrix(i, 0) == 0)
+			{
+				// constrained row index, so Displacement is Zero
+				eigenvectors.coeffRef(i, j) = 0;
+			}
+			else
+			{
+				// Un constrained row index, so Displacement is Zero
+				eigenvectors.coeffRef(i, j) = eigenvectors_reduced.coeffRef(s, j);
+				s++;
+			}
+		}
+	}
+
+	if (print_matrix == true)
+	{
+		// Print the Global Displacement matrix
+		output_file << "Global Eigen Vector Matrix" << std::endl;
+		output_file << eigenvectors << std::endl;
+		output_file << std::endl;
+	}
+}
+
+void modal_analysis_solver::map_analysis_results(const nodes_list_store& model_nodes,
+	const elementline_list_store& model_lineelements,
+	const nodeconstraint_list_store& model_constarints,
+	const modal_analysis_result_store& modal_results,
+	modal_nodes_list_store& modal_result_nodes,
+	modal_elementline_list_store& modal_result_lineelements,
+	std::ofstream& output_file)
+{
+	// Map the modal analysis results to modal members
+	// Create a global support inclination matrix
+	int numDOF = model_nodes.node_count * 3; // Number of degrees of freedom (2 DOFs per node)
+	int node_id = 0;
+
+	Eigen::MatrixXd globalSupportInclinationMatrix(numDOF, numDOF);
+	globalSupportInclinationMatrix.setZero();
+
+	// Transform the Nodal results with support inclination
+	double constraint_angle_rad = 0.0;
+	double support_Lcos = 0.0;
+	double support_Msin = 0.0;
+
+	for (auto& nd_m : model_nodes.nodeMap)
+	{
+		node_id = nd_m.first;
+		int matrix_index = nodeid_map[node_id];
+
+
+		if (model_constarints.constraintMap.find(node_id) == model_constarints.constraintMap.end())
+		{
+			// No constraint is in this node
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 0, (matrix_index * 3) + 0) = 1.0;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 0, (matrix_index * 3) + 1) = 0.0;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 0, (matrix_index * 3) + 2) = 0.0;
+
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 1, (matrix_index * 3) + 0) = 0.0;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 1, (matrix_index * 3) + 1) = 1.0;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 1, (matrix_index * 3) + 2) = 0.0;
+
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 2, (matrix_index * 3) + 0) = 0.0;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 2, (matrix_index * 3) + 1) = 0.0;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 2, (matrix_index * 3) + 2) = 1.0;
+		}
+		else
+		{
+			// Constraint present in this node
+			constraint_angle_rad = (model_constarints.constraintMap.at(node_id).constraint_angle - 90.0f) * (m_pi / 180.0f); // Constrint angle in radians
+			support_Lcos = std::cos(constraint_angle_rad); // cosine of support inclination
+			support_Msin = std::sin(constraint_angle_rad); // sine of support inclination
+
+			// Pin or Roller Support
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 0, (matrix_index * 3) + 0) = support_Lcos;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 0, (matrix_index * 3) + 1) = -1.0 * support_Msin;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 0, (matrix_index * 3) + 2) = 0.0;
+
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 1, (matrix_index * 3) + 0) = support_Msin;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 1, (matrix_index * 3) + 1) = support_Lcos;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 1, (matrix_index * 3) + 2) = 0.0;
+
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 2, (matrix_index * 3) + 0) = 0.0;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 2, (matrix_index * 3) + 1) = 0.0;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 2, (matrix_index * 3) + 2) = 1.0;
+		}
+	}
+
+	//___________________________________________________________________________________________________________
+	// Transform the  Eigen Vector with support inclination
+	Eigen::MatrixXd globalEigenVector_transformed(numDOF, modal_results.number_of_modes);
+
+	for (int i = 0; i < modal_results.number_of_modes; i++)
+	{
+		// Get the modal vector matrix for this particular mode
+		Eigen::MatrixXd globalEigenVector = convert_vector_to_1Dmatrix(modal_results.eigen_vectors.at(i));
+
+		// Transform the global Modal Vector w.r.t support inclination
+		globalEigenVector_transformed.col(i) = globalSupportInclinationMatrix * globalEigenVector;
+	}
+
+	//___________________________________________________________________________________________________________
+	// Add to the result nodes
+	for (auto& nd_m : model_nodes.nodeMap)
+	{
+		node_id = nd_m.first;
+		int matrix_index = nodeid_map[node_id];
+
+		// Modal analysis results
+		std::unordered_map<int, glm::vec3> node_modal_displ;
+
+		for (int i = 0; i < modal_results.number_of_modes; i++)
+		{
+			// get the appropriate modal displacement of this particular node
+			glm::vec3 modal_displ = glm::vec3(globalEigenVector_transformed((matrix_index * 3) + 0, i),
+				globalEigenVector_transformed((matrix_index * 3) + 1, i),
+				globalEigenVector_transformed((matrix_index * 3) + 2, i));
+
+			// add to modal result of this node
+			node_modal_displ.insert({ i,modal_displ });
+		}
+
+		// Create the modal analysis result node
+		glm::vec2 node_pt = model_nodes.nodeMap.at(node_id).node_pt;
+		modal_result_nodes.add_result_node(node_id, node_pt, node_modal_displ);
+	}
+
+
 }
 

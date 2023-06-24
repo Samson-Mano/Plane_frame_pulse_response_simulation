@@ -115,7 +115,7 @@ void material_window::render_window()
 		static char new_material_name[256] = "New Material";
 		static double new_material_density = 7.865 * std::pow(10, -9);
 		static double new_material_youngs_modulus = 210000.0;
-		static double new_material_second_moment_of_area = 100.0;
+		static double new_material_second_moment_of_area = 4000000.0;
 		static double new_material_cs_area = 8000.0;
 
 		ImGui::InputText("Material Name", new_material_name, IM_ARRAYSIZE(new_material_name));

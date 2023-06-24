@@ -5,10 +5,10 @@
 
 struct elementline_store
 {
-	int line_id; // ID of the line
-	int material_id; // Material ID of the line member
-	node_store* startNode; // start node
-	node_store* endNode; // end node
+	int line_id = 0; // ID of the line
+	int material_id = 0; // Material ID of the line member
+	node_store* startNode = nullptr; // start node
+	node_store* endNode = nullptr; // end node
 };
 
 
@@ -38,6 +38,4 @@ private:
 	label_list_store line_id_labels;
 	label_list_store line_length_labels;
 	label_list_store line_material_id_labels;
-
-
 };

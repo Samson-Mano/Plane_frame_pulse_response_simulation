@@ -157,13 +157,18 @@ void geom_store::read_varai2d(std::ifstream& input_file)
 
 
 	// add a default material to the material list
+	double dia_m = 87.404; // mm
+	const double m_pi = 3.14159265358979323846;
+	double cs_area = (m_pi * dia_m * dia_m) / 4.0f;
+	double second_moment_of_area = (m_pi * dia_m * dia_m * dia_m * dia_m) / 64.0f;
+
 	material_data inpt_material;
 	inpt_material.material_id = 0; // Get the material id
 	inpt_material.material_name = "Default material"; //Default material name
 	inpt_material.mat_density = 7.83 * std::pow(10, -9); // tons/mm3
 	inpt_material.youngs_mod = 2.07 * std::pow(10, 5); //  MPa
-	inpt_material.second_moment_of_area = 100.0; // mm4
-	inpt_material.cs_area = 6014; // mm2
+	inpt_material.second_moment_of_area = second_moment_of_area; // mm4
+	inpt_material.cs_area = cs_area; // mm2  (pi * D^2)/4
 
 	// Add to materail list
 	mat_window->material_list.clear();
@@ -256,13 +261,18 @@ void geom_store::read_dxfdata(std::ostringstream& input_data)
 
 
 	// add a default material to the material list
+	double dia_m = 87.404; // mm
+	const double m_pi = 3.14159265358979323846;
+	double cs_area = (m_pi * dia_m * dia_m) / 4.0f;
+	double second_moment_of_area = (m_pi * dia_m * dia_m * dia_m * dia_m) / 64.0f;
+
 	material_data inpt_material;
 	inpt_material.material_id = 0; // Get the material id
 	inpt_material.material_name = "Default material"; //Default material name
 	inpt_material.mat_density = 7.83 * std::pow(10, -9); // tons/mm3
 	inpt_material.youngs_mod = 2.07 * std::pow(10, 5); //  MPa
-	inpt_material.second_moment_of_area = 100.0; // mm4
-	inpt_material.cs_area = 6014; // mm2
+	inpt_material.second_moment_of_area = second_moment_of_area; // mm4
+	inpt_material.cs_area = cs_area; // mm2
 
 	// Add to materail list
 	mat_window->material_list.clear();
