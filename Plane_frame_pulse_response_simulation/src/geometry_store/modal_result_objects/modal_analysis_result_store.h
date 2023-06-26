@@ -1,5 +1,5 @@
 #pragma once
-
+#include <iostream>
 #include <unordered_map>
 #include <vector>
 
@@ -10,7 +10,7 @@ public:
 	std::unordered_map<int, int> nodeid_map;
 	std::unordered_map<int, double> eigen_values;
 	std::unordered_map<int, std::vector<double>> eigen_vectors;
-
+	std::vector<std::string> mode_result_str;
 
 	modal_analysis_result_store();
 	~modal_analysis_result_store();

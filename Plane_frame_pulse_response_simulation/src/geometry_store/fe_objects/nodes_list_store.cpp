@@ -80,7 +80,7 @@ void nodes_list_store::set_buffer()
 void nodes_list_store::paint_model_nodes()
 {
 	// Paint the model nodes
-	node_points.paint_nodes();
+	node_points.paint_points();
 }
 
 void nodes_list_store::paint_label_node_ids()

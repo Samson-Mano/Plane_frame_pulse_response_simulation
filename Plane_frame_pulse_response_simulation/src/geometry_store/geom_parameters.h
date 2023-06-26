@@ -42,6 +42,7 @@ public:
 	glm::mat4 modelMatrix = glm::mat4(0); // Geometry model matrix
 	double geom_scale = 0.0; // Scale of the geometry
 	double geom_transparency = 0.0; // Value to control the geometry transparency
+	double normalized_defl_scale = 0.0f; // Value of deflection scale
 	double defl_scale = 0.0f; // Value of deflection scale
 
 	// Screen transformations

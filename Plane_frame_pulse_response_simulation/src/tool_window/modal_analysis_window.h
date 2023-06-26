@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <vector>
 #include "../ImGui/imgui.h"
 #include "../ImGui/imgui_impl_glfw.h"
 #include "../ImGui/imgui_impl_opengl3.h"
@@ -13,8 +14,13 @@ public:
 	bool execute_modal_analysis = false; // Main solver run event flag
 	bool execute_open = false; // Solver window open event flag
 	bool execute_close = false; // Closing of solution window event flag
+
+	// Modal analysis result list
 	int selected_modal_option = 0;
-	std::string log_buffer = "";
+	std::vector<std::string> mode_result_str;
+	int selection_change_flag = 0;
+	bool is_mode_selection_changed = false;
+
 
 	bool show_undeformed_model = true; // show undeformed model 
 	bool show_result_text_values = true; // show the result text values
@@ -25,6 +31,7 @@ public:
 	double time_val = 0.0;
 	double deformation_scale_max = 10.0;
 	double animation_speed = 10.0;
+	double normailzed_defomation_scale = 0.0;
 	double deformation_scale = 0.0;
 
 	modal_analysis_window();

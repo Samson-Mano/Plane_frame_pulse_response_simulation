@@ -230,8 +230,8 @@ void geom_store::read_dxfdata(std::ostringstream& input_data)
 		{
 			// Read the nodes
 			int node_id = std::stoi(fields[1]); // node ID
-			float x = std::stod(fields[2]); // Node coordinate x
-			float y = std::stod(fields[3]); // Node coordinate y
+			double x = std::stod(fields[2]); // Node coordinate x
+			double y = std::stod(fields[3]); // Node coordinate y
 
 			// Add to node Map
 			glm::vec2 node_pt = glm::vec2(x, y);
@@ -353,8 +353,8 @@ void geom_store::read_rawdata(std::ifstream& input_file)
 		{
 			// Read the nodes
 			int node_id = std::stoi(fields[1]); // node ID
-			float x = std::stod(fields[2]); // Node coordinate x
-			float y = std::stod(fields[3]); // Node coordinate y
+			double x = std::stod(fields[2]); // Node coordinate x
+			double y = std::stod(fields[3]); // Node coordinate y
 
 			// Add to node Map
 			glm::vec2 node_pt = glm::vec2(x, y);
@@ -563,6 +563,8 @@ void geom_store::update_model_matrix()
 	model_ptmass.update_geometry_matrices(true, false, false, false, false);
 
 	// Update the modal analysis result matrix
+	modal_result_lineelements.update_geometry_matrices(true, false, false, false, false);
+	modal_result_nodes.update_geometry_matrices(true, false, false, false, false);
 
 }
 
@@ -585,6 +587,9 @@ void geom_store::update_model_zoomfit()
 	model_ptmass.update_geometry_matrices(false, true, true, false, false);
 
 	// Update the modal analysis result matrix
+	modal_result_lineelements.update_geometry_matrices(false, true, true, false, false);
+	modal_result_nodes.update_geometry_matrices(false, true, true, false, false);
+
 
 }
 
@@ -607,7 +612,8 @@ void geom_store::update_model_pan(glm::vec2& transl)
 	model_ptmass.update_geometry_matrices(false, true, false, false, false);
 
 	// Update the modal analysis result matrix
-
+	modal_result_lineelements.update_geometry_matrices(false, true, false, false, false);
+	modal_result_nodes.update_geometry_matrices(false, true, false, false, false);
 }
 
 void geom_store::update_model_zoom(double& z_scale)
@@ -626,6 +632,8 @@ void geom_store::update_model_zoom(double& z_scale)
 	model_ptmass.update_geometry_matrices(false, false, true, false, false);
 
 	// Update the modal analysis result matrix
+	modal_result_lineelements.update_geometry_matrices(false, false, true, false, false);
+	modal_result_nodes.update_geometry_matrices(false, false, true, false, false);
 
 }
 
@@ -653,6 +661,9 @@ void geom_store::update_model_transperency(bool is_transparent)
 	model_ptmass.update_geometry_matrices(false, false, false, true, false);
 
 	// Update the modal analysis result matrix
+	// modal_result_lineelements.update_geometry_matrices(false, false, false, true, false);
+	// modal_result_nodes.update_geometry_matrices(false, false, false, true, false);
+
 
 }
 
@@ -788,6 +799,16 @@ void geom_store::paint_geometry()
 
 void geom_store::paint_model()
 {
+	//____________________________________________________________
+	// Postprocessing is in progress
+
+	if (sol_modal_window->is_show_window == true && sol_modal_window->show_undeformed_model == false)
+	{
+		return;
+	}
+
+	//____________________________________________________________
+
 	// Paint the model
 	model_constarints.paint_constraints();
 	model_lineelements.paint_elementlines();
@@ -855,7 +876,6 @@ void geom_store::paint_modal_analysis()
 		sol_modal_window->execute_close = false;
 	}
 
-
 	// Check whether the modal analysis solver window is open or not
 	if (sol_modal_window->is_show_window == false)
 	{
@@ -865,6 +885,28 @@ void geom_store::paint_modal_analysis()
 	// Paint the modal analysis result
 	if (is_modal_analysis_complete == true)
 	{
+		// Change the buffer depending on the selected mode
+		if (sol_modal_window->is_mode_selection_changed == true)
+		{
+			// Update the buffers
+			// Modal Line buffer
+			modal_result_lineelements.set_buffer(sol_modal_window->selected_modal_option);
+
+			// Modal Node buffer
+			modal_result_nodes.set_buffer(sol_modal_window->selected_modal_option);
+
+			sol_modal_window->is_mode_selection_changed = false;
+		}
+
+		// Update the deflection scale
+		geom_param.normalized_defl_scale = sol_modal_window->normailzed_defomation_scale;
+		geom_param.defl_scale = sol_modal_window->deformation_scale;
+
+		// Update the deflection scale
+		modal_result_lineelements.update_geometry_matrices(false, false, false, false, true);
+		modal_result_nodes.update_geometry_matrices(false, false, false, false, true);
+		// ______________________________________________________________________________________
+
 		// Paint the modal lines
 		modal_result_lineelements.paint_modal_elementlines();
 
@@ -875,7 +917,7 @@ void geom_store::paint_modal_analysis()
 		if (sol_modal_window->show_result_text_values == true)
 		{
 			// Paint the modal result vector
-			modal_result_nodes.paint_label_node_vectors();
+			modal_result_nodes.paint_label_mode_vectors();
 		}
 	}
 
@@ -885,6 +927,12 @@ void geom_store::paint_modal_analysis()
 		// Execute the open sequence
 		if (is_modal_analysis_complete == true)
 		{
+			// update the modal window list box
+			sol_modal_window->mode_result_str = modal_results.mode_result_str;
+
+			// Set the buffer
+			sol_modal_window->is_mode_selection_changed = true;
+
 			// Modal analysis is already complete so set the transparency for the model
 			update_model_transperency(true);
 		}
@@ -909,6 +957,12 @@ void geom_store::paint_modal_analysis()
 		// Check whether the modal analysis is complete or not
 		if (is_modal_analysis_complete == true)
 		{
+			// update the modal window list box
+			sol_modal_window->mode_result_str = modal_results.mode_result_str;
+			
+			// Set the buffer
+			sol_modal_window->is_mode_selection_changed = true;
+
 			// Modal analysis is already complete so set the transparency for the model
 			update_model_transperency(true);
 		}
@@ -1021,6 +1075,10 @@ void geom_store::create_geometry(nodes_list_store& model_nodes, elementline_list
 	modal_results.clear_data();
 	modal_result_nodes.init(&geom_param);
 	modal_result_lineelements.init(&geom_param);
+
+	// Clear the modal results in the window
+	sol_modal_window->init();
+
 }
 
 std::pair<glm::vec2, glm::vec2> geom_store::findMinMaxXY(const std::unordered_map<int, node_store>& model_nodes)

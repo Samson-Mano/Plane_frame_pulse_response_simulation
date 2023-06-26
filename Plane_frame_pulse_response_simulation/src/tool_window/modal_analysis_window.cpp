@@ -17,7 +17,7 @@ void modal_analysis_window::init()
 	execute_open = false;
 	execute_close = false;
 	selected_modal_option = 0;
-
+	mode_result_str.clear();
 }
 
 void modal_analysis_window::render_window()
@@ -37,17 +37,21 @@ void modal_analysis_window::render_window()
 		execute_modal_analysis = true;
 	}
 
-	// Add a log text box
-	ImGui::TextWrapped("Solver Log:");
-	ImGui::BeginChild("log_scroll_region", ImVec2(-1, 200), true, ImGuiWindowFlags_HorizontalScrollbar);
-	ImGui::TextUnformatted(log_buffer.c_str());
+	// Add the modal analysis result list box
+	std::vector<const char*> items_cstr;
+	for (const auto& item:mode_result_str) 
+	{
+		items_cstr.push_back(item.c_str());
+	}
 
-	// Automatic scroll to bottom
-	if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
-		ImGui::SetScrollHereY(1.0f);
+	ImGui::ListBox("Natural Frequency", &selected_modal_option, items_cstr.data(), static_cast<int>( items_cstr.size()));
 
-	ImGui::EndChild();
-
+	// Capture if selection changed or not
+	if (selected_modal_option != selection_change_flag)
+	{
+		selection_change_flag = selected_modal_option;
+		is_mode_selection_changed = true;
+	}
 
 	ImGui::Spacing();
 	//_________________________________________________________________________________________
@@ -108,6 +112,7 @@ void modal_analysis_window::render_window()
 	deformation_scale_max = deformation_scale_flt;
 
 	//Set the deformation scale
+	normailzed_defomation_scale = 1.0f;
 	deformation_scale = deformation_scale_max;
 
 	ImGui::Spacing();
@@ -226,7 +231,6 @@ void modal_analysis_window::render_window()
 		// Close button
 	if (ImGui::Button("Close"))
 	{
-		log_buffer = "";
 		execute_close = true;
 		execute_open = false;
 		is_show_window = false; // set the flag to close the window
@@ -244,12 +248,14 @@ void modal_analysis_window::render_window()
 		}
 
 		// Animation is playing 
-		deformation_scale = ((std::cos(time_val * animation_speed) + 1) * 0.5f) * deformation_scale_max;
+		normailzed_defomation_scale = ((std::cos(time_val * animation_speed) + 1) * 0.5f); // Varies between 0 and 1
+		deformation_scale = normailzed_defomation_scale * deformation_scale_max;
 		time_val = time_val + 0.0002f;
 	}
 	else if (animate_pause == true)
 	{
-		deformation_scale = ((std::cos(time_val * animation_speed) + 1) * 0.5f) * deformation_scale_max;
+		normailzed_defomation_scale = ((std::cos(time_val * animation_speed) + 1) * 0.5f); // Varies between 0 and 1
+		deformation_scale = normailzed_defomation_scale * deformation_scale_max;
 	}
 
 }

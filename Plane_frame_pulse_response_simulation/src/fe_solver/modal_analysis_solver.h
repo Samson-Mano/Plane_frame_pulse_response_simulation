@@ -16,6 +16,8 @@
 #pragma warning(push)
 #pragma warning (disable : 26451)
 #pragma warning (disable : 26495)
+#pragma warning (disable : 6255)
+#pragma warning (disable : 26813)
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
@@ -103,6 +105,9 @@ private:
 		const int& m_size);
 
 	Eigen::MatrixXd convert_vector_to_1Dmatrix(const std::vector<double>& vec);
+
+	int get_number_of_rigid_body_modes(int num_of_nodes,
+		const Eigen::MatrixXd& globalDOFMatrix);
 
 	void map_analysis_results(const nodes_list_store& model_nodes,
 		const elementline_list_store& model_lineelements,

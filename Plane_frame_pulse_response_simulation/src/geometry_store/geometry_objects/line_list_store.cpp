@@ -145,6 +145,7 @@ void line_list_store::update_opengl_uniforms(bool set_modelmatrix, bool set_pant
 	if (set_deflscale == true)
 	{
 		// set the deflection scale
+		line_shader.setUniform("normalized_deflscale", static_cast<float>(geom_param_ptr->normalized_defl_scale));
 		line_shader.setUniform("deflscale", static_cast<float>(geom_param_ptr->defl_scale));
 	}
 }

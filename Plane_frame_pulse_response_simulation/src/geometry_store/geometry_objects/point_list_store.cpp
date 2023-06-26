@@ -32,6 +32,7 @@ void point_list_store::add_point(int& point_id, glm::vec2& point_loc, glm::vec2&
 	point_store temp_pt;
 	temp_pt.point_id = point_id;
 	temp_pt.point_loc = point_loc;
+	temp_pt.point_offset = point_offset;
 	temp_pt.point_color = point_color;
 	temp_pt.is_offset = is_offset;
 
@@ -80,7 +81,7 @@ void point_list_store::set_buffer()
 	delete[] point_vertex_indices;
 }
 
-void point_list_store::paint_nodes()
+void point_list_store::paint_points()
 {
 	// Paint all the points
 	point_shader.Bind();
@@ -90,7 +91,7 @@ void point_list_store::paint_nodes()
 	point_shader.UnBind();
 }
 
-void point_list_store::clear_nodes()
+void point_list_store::clear_points()
 {
 	// Delete all the points
 	point_count = 0;
@@ -129,6 +130,7 @@ void point_list_store::update_opengl_uniforms(bool set_modelmatrix, bool set_pan
 	if (set_deflscale == true)
 	{
 		// set the deflection scale
+		point_shader.setUniform("normalized_deflscale", static_cast<float>(geom_param_ptr->normalized_defl_scale));
 		point_shader.setUniform("deflscale", static_cast<float>(geom_param_ptr->defl_scale));
 	}
 }

@@ -233,10 +233,8 @@ void modal_analysis_solver::modal_analysis_start(const nodes_list_store& model_n
 
 	is_modal_analysis_complete = true;
 
-	// Clear the results
+	// Clear the modal results
 	modal_results.clear_data();
-	modal_result_nodes.clear_data();
-
 
 	// Add the eigen values and eigen vectors
 	for (int i = 0; i < reducedDOF; i++)
@@ -253,11 +251,45 @@ void modal_analysis_solver::modal_analysis_start(const nodes_list_store& model_n
 	}
 	modal_results.add_node_map(nodeid_map);
 
+	//____________________________________________________________________________________________
+	// Convert the modal result to string  
+	int num_of_rigidbody_modes = get_number_of_rigid_body_modes(model_nodes.node_count,globalDOFMatrix);
+	std::vector<std::string> mode_result_str;
+	int k = 0;
 
-	// Add the modal analysis results to node, element
+	for (int i = 0; i < modal_results.number_of_modes; i++)
+	{
+		// Modal results
+		std::stringstream ss;
+		ss << std::fixed << std::setprecision(2) << modal_results.eigen_values[i];
 
+		if (i < num_of_rigidbody_modes)
+		{
+			mode_result_str.push_back("Rigid body mode " + std::to_string(i + 1) + " = " + ss.str());
+		}
+		else
+		{
+			mode_result_str.push_back("Mode " + std::to_string(k + 1) + " = " + ss.str());
+			k++;
+		}
+	}
 
+	modal_results.mode_result_str = mode_result_str;
 
+	//_____________________________________________________________________________________________
+
+	// Add the modal analysis results to node & element
+	// Clear the modal node and modal element results
+	modal_result_nodes.clear_data();
+	modal_result_lineelements.clear_data();
+
+	map_analysis_results(model_nodes,
+		model_lineelements,
+		model_constarints,
+		modal_results,
+		modal_result_nodes,
+		modal_result_lineelements,
+		output_file);
 
 	//____________________________________________________________________________________________________________________
 
@@ -802,7 +834,7 @@ void modal_analysis_solver::normalize_eigen_vectors(Eigen::MatrixXd& eigenvector
 	}
 }
 
-Eigen::MatrixXd convert_vector_to_1Dmatrix(const std::vector<double>& vec)
+Eigen::MatrixXd modal_analysis_solver::convert_vector_to_1Dmatrix(const std::vector<double>& vec)
 {
 	// Convert Vector to 1D Column matrix
 	int vec_size = static_cast<int>(vec.size());
@@ -815,6 +847,63 @@ Eigen::MatrixXd convert_vector_to_1Dmatrix(const std::vector<double>& vec)
 	}
 	return mat;
 }
+
+int modal_analysis_solver::get_number_of_rigid_body_modes(int num_of_nodes,
+	const Eigen::MatrixXd& globalDOFMatrix)
+{
+	// Set all three DOF free 
+	bool x_free = true;
+	bool y_free = true;
+	bool xy_free = true;
+
+	// get the number of rigid body modes
+	for (int i = 0; i < num_of_nodes; i++)
+	{
+		// x DOF
+		if (globalDOFMatrix(((i * 3) + 0), 0) == 0)
+		{
+			x_free = false;
+		}
+
+		// y DOF
+		if (globalDOFMatrix(((i * 3) + 1), 0) == 0)
+		{
+			y_free = false;
+		}
+
+
+		// z DOF
+		if (globalDOFMatrix(((i * 3) + 2), 0) == 0)
+		{
+			xy_free = false;
+		}
+	}
+
+	// Get the total free
+	int rigid_body_modes = 0;
+
+	if (x_free == true)
+	{
+		// No constraint at x direction
+		rigid_body_modes++;
+	}
+
+	if (y_free == true)
+	{
+		// No constraint at y direction
+		rigid_body_modes++;
+	}
+
+	if (xy_free == true)
+	{
+		// No constraint at xy rotation
+		rigid_body_modes++;
+	}
+	
+
+	return rigid_body_modes;
+}
+
 
 void modal_analysis_solver::get_global_modal_vector_matrix(Eigen::MatrixXd& eigenvectors,
 	const Eigen::MatrixXd& eigenvectors_reduced,
@@ -959,6 +1048,79 @@ void modal_analysis_solver::map_analysis_results(const nodes_list_store& model_n
 		modal_result_nodes.add_result_node(node_id, node_pt, node_modal_displ);
 	}
 
+	// Add the modal line element result
+	for (auto& ln_m : model_lineelements.elementlineMap)
+	{
+		elementline_store ln = ln_m.second;
 
+		modal_result_lineelements.add_modal_elementline(ln.line_id,
+			&modal_result_nodes.modal_nodeMap[ln.startNode->node_id],
+			&modal_result_nodes.modal_nodeMap[ln.endNode->node_id]);
+	}
+
+	// Find the maximum displacement for individual modes
+	std::unordered_map<int, double> max_node_displ;
+	std::unordered_map<int, double> min_node_displ;
+
+	for (int i = 0; i < modal_results.number_of_modes; i++)
+	{
+		// Go through all the line points at this particular mode
+		double max_displ = 0.0;
+		double min_displ = INT32_MAX;
+
+		for (auto& ln_m : modal_result_lineelements.modal_elementlineMap)
+		{
+			modal_elementline_store ln = ln_m.second;
+
+			// Get all the modal line data
+			for (auto& mln_hld : ln.hermite_line_data)
+			{
+				// loop through all the mode line end points
+				glm::vec2 mln_pt1 = mln_hld.pt1_modal_displ[i];
+				glm::vec2 mln_pt2 = mln_hld.pt2_modal_displ[i];
+
+				// Check all the point
+				// Maximum
+				if (max_displ < std::abs(std::sqrt((mln_pt1.x * mln_pt1.x) + (mln_pt1.y * mln_pt1.y))))
+				{
+					// pt1
+					max_displ = std::abs(std::sqrt((mln_pt1.x * mln_pt1.x) + (mln_pt1.y * mln_pt1.y)));
+				}
+
+				if (max_displ < std::abs(std::sqrt((mln_pt2.x * mln_pt2.x) + (mln_pt2.y * mln_pt2.y))))
+				{
+					// pt2
+					max_displ = std::abs(std::sqrt((mln_pt2.x * mln_pt2.x) + (mln_pt2.y * mln_pt2.y)));
+				}
+				//____________________________________________________________________________________________
+				// Minimum
+				if (min_displ > std::abs(std::sqrt((mln_pt1.x * mln_pt1.x) + (mln_pt1.y * mln_pt1.y))))
+				{
+					// pt1
+					min_displ = std::abs(std::sqrt((mln_pt1.x * mln_pt1.x) + (mln_pt1.y * mln_pt1.y)));
+				}
+
+				if (min_displ > std::abs(std::sqrt((mln_pt2.x * mln_pt2.x) + (mln_pt2.y * mln_pt2.y))))
+				{
+					// pt2
+					min_displ = std::abs(std::sqrt((mln_pt2.x * mln_pt2.x) + (mln_pt2.y * mln_pt2.y)));
+				}
+			}
+
+		}
+
+		// Add to the maximum displacement of this mode
+		max_node_displ.insert({ i,max_displ });
+		min_node_displ.insert({ i,min_displ });
+	}
+
+	// Set the maximum modal displacement
+	modal_result_nodes.max_node_displ.clear();
+	modal_result_nodes.max_node_displ = max_node_displ;
+	modal_result_nodes.min_node_displ = min_node_displ;
+
+	modal_result_lineelements.max_node_displ.clear();
+	modal_result_lineelements.max_node_displ = max_node_displ;
+	modal_result_lineelements.min_node_displ = min_node_displ;
 }
 

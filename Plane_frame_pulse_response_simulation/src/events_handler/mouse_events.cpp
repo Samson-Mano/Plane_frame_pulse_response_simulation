@@ -132,7 +132,7 @@ void mouse_events::left_mouse_click(glm::vec2& loc)
 	if ((ptm_window->is_add_pointmass) == true)
 	{
 		// Add Point Mass
-		geom->set_nodal_pointmass(loc, ptm_window->mass_x, ptm_window->mass_x, ptm_window->mass_xy, true);
+		geom->set_nodal_pointmass(loc, ptm_window->mass_x, ptm_window->mass_y, ptm_window->mass_xy, true);
 	}
 
 	/*
