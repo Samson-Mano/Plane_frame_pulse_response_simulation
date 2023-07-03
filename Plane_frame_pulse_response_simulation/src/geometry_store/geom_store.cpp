@@ -10,7 +10,8 @@ geom_store::~geom_store()
 	// Empty Destructor
 }
 
-void geom_store::init(options_window* op_window, material_window* mat_window, modal_analysis_window* sol_modal_window)
+void geom_store::init(options_window* op_window, material_window* mat_window, modal_analysis_window* sol_modal_window,
+	frequency_response_window* sol_freq_window, pulse_response_window* sol_pulse_window)
 {
 	// Initialize
 	// Initialize the geometry parameters
@@ -35,6 +36,8 @@ void geom_store::init(options_window* op_window, material_window* mat_window, mo
 	this->op_window = op_window;
 	this->mat_window = mat_window;
 	this->sol_modal_window = sol_modal_window;
+	this->sol_freq_window = sol_freq_window;
+	this->sol_pulse_window = sol_pulse_window;
 }
 
 void geom_store::fini()
@@ -386,11 +389,12 @@ void geom_store::read_rawdata(std::ifstream& input_file)
 			double load_angle = std::stod(fields[3]); // load angle
 			double load_start_time = std::stod(fields[4]); // load start time
 			double load_end_time = std::stod(fields[5]); // load end time
-			double load_loc_x = std::stod(fields[6]); // load loc x
-			double load_loc_y = std::stod(fields[7]); // load loc y
+			double load_loc_param = std::stod(fields[6]); // load location parameter
+			double load_loc_x = std::stod(fields[7]); // load loc x
+			double load_loc_y = std::stod(fields[8]); // load loc y
 
 			// Add to load map
-			model_loads.add_load(load_ln_id, glm::vec2(load_loc_x, load_loc_y), load_start_time, load_end_time, load_val, load_angle);
+			model_loads.add_load(load_ln_id, load_loc_param, glm::vec2(load_loc_x, load_loc_y), load_start_time, load_end_time, load_val, load_angle);
 		}
 		else if (type == "ptms")
 		{
@@ -487,6 +491,7 @@ void geom_store::write_rawdata(std::ofstream& output_file)
 			<< ld_val.load_angle << ", " // load angle
 			<< ld_val.load_start_time << ", " // load start time
 			<< ld_val.load_end_time << ", " // load end time
+			<< ld_val.load_loc_param << ", " // load location parameter
 			<< ld_val.load_loc.x << ", " // load loc x
 			<< ld_val.load_loc.y << std::endl; // load loc y
 	}
@@ -718,7 +723,7 @@ void geom_store::set_member_load(glm::vec2 mouse_click_loc, double& load_param, 
 				glm::vec2 load_loc = start_pt * (1 - static_cast<float>(load_param)) + end_pt * (static_cast<float>(load_param));
 
 				// Add Load
-				model_loads.add_load(line_hit_id, load_loc, load_start_time, load_end_time, load_value, load_angle);
+				model_loads.add_load(line_hit_id, load_param, load_loc, load_start_time, load_end_time, load_value, load_angle);
 				model_loads.set_buffer();
 			}
 			else
@@ -794,6 +799,8 @@ void geom_store::paint_geometry()
 
 	// Modal Analysis
 	paint_modal_analysis();
+
+	// Frequency Response Analysis
 
 }
 
@@ -954,6 +961,10 @@ void geom_store::paint_modal_analysis()
 			modal_result_lineelements,
 			is_modal_analysis_complete);
 
+		// reset the frequency response and pulse response solution
+		is_freq_analysis_complete = false;
+		is_pulse_analysis_complete = false;
+
 		// Check whether the modal analysis is complete or not
 		if (is_modal_analysis_complete == true)
 		{
@@ -970,6 +981,85 @@ void geom_store::paint_modal_analysis()
 		sol_modal_window->execute_modal_analysis = false;
 	}
 
+}
+
+void geom_store::paint_freq_analysis()
+{
+	// Check closing sequence for modal analysis window
+	if (sol_freq_window->execute_close == true)
+	{
+		// Execute the close sequence
+		if (is_freq_analysis_complete == true)
+		{
+			// Frequency response is complete (but clear the results anyway beacuse results will be loaded at open)
+			sol_freq_window->freq_response_analysis_complete = false;
+			// Fill the results
+			sol_freq_window->freq_response_result.clear_data();
+		}
+
+		sol_modal_window->execute_close = false;
+	}
+
+	// Check whether the modal analysis solver window is open or not
+	if (sol_freq_window->is_show_window == false)
+	{
+		return;
+	}
+
+	
+	if (sol_freq_window->execute_open == true)
+	{
+		// Execute the open sequence
+		if (is_modal_analysis_complete == false)
+		{
+			// Exit the window (when modal analysis is not complete)
+			sol_freq_window->is_show_window = false;
+		}
+		else
+		{
+			// Modal analysis is complete (check whether frequency response analysis is complete or not)
+			if (is_freq_analysis_complete == true)
+			{
+				// Frequency response is complete
+				sol_freq_window->freq_response_analysis_complete = true;
+				// Fill the results
+				sol_freq_window->freq_response_result = freq_response_result;
+			}
+
+		}
+		sol_freq_window->execute_open = false;
+	}
+
+	if (sol_freq_window->execute_freq_analysis == true)
+	{
+		// Execute the Frequency response Analysis
+		freq_analysis_solver fq_solver;
+		fq_solver.freq_analysis_start(model_nodes,
+			model_lineelements,
+			model_constarints,
+			model_loads,
+			model_ptmass,
+			mat_window->material_list,
+			sol_modal_window->is_include_consistent_mass_matrix,
+			modal_results,
+			sol_freq_window->frequency_start_val,
+			sol_freq_window->frequency_end_val,
+			sol_freq_window->frequency_interval,
+			sol_freq_window->damping_ratio,
+			freq_response_result,
+			is_freq_analysis_complete);
+
+		// Check whether the modal analysis is complete or not
+		if (is_freq_analysis_complete == true)
+		{
+			// Frequency response is complete
+			sol_freq_window->freq_response_analysis_complete = true;
+			// Fill the results
+			sol_freq_window->freq_response_result = freq_response_result;
+		}
+
+		sol_freq_window->execute_freq_analysis = false;
+	}
 }
 
 void geom_store::create_geometry(nodes_list_store& model_nodes, elementline_list_store& model_lineelements,
@@ -1030,7 +1120,7 @@ void geom_store::create_geometry(nodes_list_store& model_nodes, elementline_list
 		temp_load = load.second;
 
 		// Add to the load list
-		this->model_loads.add_load(temp_load.line_id, temp_load.load_loc, temp_load.load_start_time,
+		this->model_loads.add_load(temp_load.line_id,temp_load.load_loc_param, temp_load.load_loc, temp_load.load_start_time,
 			temp_load.load_end_time, temp_load.load_value, temp_load.load_angle);
 	}
 
@@ -1078,7 +1168,8 @@ void geom_store::create_geometry(nodes_list_store& model_nodes, elementline_list
 
 	// Clear the modal results in the window
 	sol_modal_window->init();
-
+	sol_freq_window->init();
+	sol_pulse_window->init();
 }
 
 std::pair<glm::vec2, glm::vec2> geom_store::findMinMaxXY(const std::unordered_map<int, node_store>& model_nodes)

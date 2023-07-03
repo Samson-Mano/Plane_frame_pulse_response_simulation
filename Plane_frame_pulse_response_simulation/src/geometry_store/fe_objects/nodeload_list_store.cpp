@@ -30,12 +30,13 @@ void nodeload_list_store::init(geom_parameters* geom_param_ptr)
 	all_load_ids.clear();
 }
 
-void nodeload_list_store::add_load(int& line_id, glm::vec2 load_loc,
+void nodeload_list_store::add_load(int& line_id, double load_loc_param, glm::vec2 load_loc,
 	double& load_start_time, double& load_end_time, double& load_value, double& load_angle)
 {
 	load_data temp_load;
 	temp_load.load_id = get_unique_load_id(); // Load id
 	temp_load.line_id = line_id; // id of the line its applied to
+	temp_load.load_loc_param = load_loc_param; // Load location to param 0 to 1
 	temp_load.load_loc = load_loc; // Load location
 	temp_load.load_start_time = load_start_time; // Load start time
 	temp_load.load_end_time = load_end_time; // Load end time

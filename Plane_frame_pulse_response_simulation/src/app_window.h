@@ -22,6 +22,8 @@
 #include "tool_window/pointmass_window.h"
 #include "tool_window/solver_window.h"
 #include "tool_window/modal_analysis_window.h"
+#include "tool_window/frequency_response_window.h"
+#include "tool_window/pulse_response_window.h"
 
 class app_window
 {
@@ -50,6 +52,8 @@ public:
 	pointmass_window ptm_window;
 	solver_window sol_window;
 	modal_analysis_window sol_modal_window;
+	frequency_response_window sol_freq_window;
+	pulse_response_window sol_pulse_window;
 
 	app_window();
 	~app_window();

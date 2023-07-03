@@ -13,9 +13,12 @@
 #include "../tool_window/pointmass_window.h"
 #include "../tool_window/solver_window.h"
 #include "../tool_window/modal_analysis_window.h"
+#include "../tool_window/frequency_response_window.h"
+#include "../tool_window/pulse_response_window.h"
 
 // Solver
 #include "../fe_solver/modal_analysis_solver.h"
+#include "../fe_solver/freq_analysis_solver.h"
 
 // FE Objects
 #include "fe_objects/nodes_list_store.h"
@@ -29,6 +32,9 @@
 #include "modal_result_objects/modal_nodes_list_store.h"
 #include "modal_result_objects/modal_elementline_store.h"
 
+// FE Results  Result Objects
+#include "freq_result_objects/freq_analysis_result_store.h"
+
 class geom_store
 {
 public:
@@ -39,7 +45,8 @@ public:
 
 	geom_store();
 	~geom_store();
-	void init(options_window* op_window, material_window* mat_window, modal_analysis_window* sol_modal_window);
+	void init(options_window* op_window, material_window* mat_window, modal_analysis_window* sol_modal_window,
+		frequency_response_window* sol_freq_window, pulse_response_window* sol_pulse_window);
 	void fini();
 
 	// Reading and writing the geometry file
@@ -80,13 +87,20 @@ private:
 	modal_nodes_list_store modal_result_nodes;
 	modal_elementline_list_store modal_result_lineelements;
 
+	// Frequency Response results
+	freq_analysis_result_store freq_response_result;
+
 	// View options ptr and Material window ptr
 	options_window* op_window = nullptr;
 	material_window* mat_window = nullptr;
 	modal_analysis_window* sol_modal_window = nullptr;
-	
+	frequency_response_window* sol_freq_window = nullptr;
+	pulse_response_window* sol_pulse_window = nullptr;
+
 	// Analysis 
 	bool is_modal_analysis_complete = false;
+	bool is_freq_analysis_complete = false;
+	bool is_pulse_analysis_complete = false;
 
 	// Create geometry private functions
 	void create_geometry(nodes_list_store& model_nodes,
@@ -101,4 +115,5 @@ private:
 
 	void paint_model(); // Paint the model
 	void paint_modal_analysis(); // Paint the modal analysis results
+	void paint_freq_analysis(); // Paint the frequency response analysis results
 };

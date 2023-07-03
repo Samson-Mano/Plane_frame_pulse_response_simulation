@@ -6,12 +6,14 @@
 #include "../geometry_store/fe_objects/nodes_list_store.h"
 #include "../geometry_store/fe_objects/elementline_list_store.h"
 #include "../geometry_store/fe_objects/nodeconstraint_list_store.h"
+#include "../geometry_store/fe_objects/nodeload_list_store.h"
 #include "../geometry_store/fe_objects/nodepointmass_list_store.h"
 
 // FE Results Modal Analysis
 #include "../geometry_store/modal_result_objects/modal_analysis_result_store.h"
-#include "../geometry_store/modal_result_objects/modal_nodes_list_store.h"
-#include "../geometry_store/modal_result_objects/modal_elementline_store.h"
+
+// FE Results Freq Analysis
+#include "../geometry_store/freq_result_objects/freq_analysis_result_store.h"
 
 #pragma warning(push)
 #pragma warning (disable : 26451)
@@ -26,34 +28,40 @@
 typedef Eigen::SparseMatrix<double> SparseMatrix;
 #pragma warning(pop)
 
-class modal_analysis_solver
+
+
+class freq_analysis_solver
 {
 public:
 	const double m_pi = 3.14159265358979323846;
 	bool print_matrix = true;
 
-	modal_analysis_solver();
-	~modal_analysis_solver();
-	void modal_analysis_start(const nodes_list_store& model_nodes,
+	freq_analysis_solver();
+	~freq_analysis_solver();
+	void freq_analysis_start(const nodes_list_store& model_nodes,
 		const elementline_list_store& model_lineelements,
 		const nodeconstraint_list_store& model_constarints,
+		const nodeload_list_store& model_loads,
 		const nodepointmass_list_store& model_ptmass,
 		const std::unordered_map<int, material_data>& material_list,
 		const bool& is_include_consistent_mass_matrix,
-		modal_analysis_result_store& modal_results,
-		modal_nodes_list_store& modal_result_nodes, 
-		modal_elementline_list_store& modal_result_lineelements,
-		bool& is_modal_analysis_complete);
+		const modal_analysis_result_store& modal_results,
+		const double freq_start,
+		const double freq_end,
+		const double freq_interval,
+		const double damping_ratio,
+		freq_analysis_result_store& freq_response_result,
+		bool& is_freq_analysis_complete);
+
 private:
 	std::unordered_map<int, int> nodeid_map;
 
 	void get_global_stiffness_matrix(Eigen::MatrixXd& globalStiffnessMatrix,
 		const elementline_list_store& model_lineelements,
-		const std::unordered_map<int, material_data>& material_list, 
+		const std::unordered_map<int, material_data>& material_list,
 		const nodeconstraint_list_store& model_constarints,
 		std::ofstream& output_file);
 
-	
 	void get_element_stiffness_matrix(Eigen::MatrixXd& elementStiffnessMatrix,
 		const elementline_store& ln,
 		const material_data& elementline_material,
@@ -77,6 +85,16 @@ private:
 		const nodeconstraint_list_store& model_constarints,
 		std::ofstream& output_file);
 
+	void get_global_load_matrix(Eigen::MatrixXd& globalLoadMatrix,
+		const elementline_list_store& model_lineelements,
+		const nodeload_list_store& model_loads,
+		std::ofstream& output_file);
+
+	void get_element_load_matrix(Eigen::MatrixXd& elementLoadMatrix,
+		const elementline_store& ln,
+		const nodeload_list_store& model_loads,
+		std::ofstream& output_file);
+
 	void get_global_dof_matrix(Eigen::MatrixXd& globalDOFMatrix,
 		const nodes_list_store& model_nodes,
 		const nodeconstraint_list_store& model_constarints,
@@ -84,40 +102,20 @@ private:
 		std::ofstream& output_file);
 
 	void get_reduced_global_matrices(Eigen::MatrixXd& reduced_globalStiffnessMatrix,
-		Eigen::MatrixXd& reduced_globalMassMatrix, 
+		Eigen::MatrixXd& reduced_globalMassMatrix,
+		Eigen::MatrixXd& reduced_globalLoadMatrix,
 		const Eigen::MatrixXd& globalStiffnessMatrix,
 		const Eigen::MatrixXd& globalMassMatrix,
+		const Eigen::MatrixXd& globalLoadMatrix,
 		const Eigen::MatrixXd& globalDOFMatrix,
 		const int& numDOF,
 		std::ofstream& output_file);
 
-	void get_global_modal_vector_matrix(Eigen::MatrixXd& eigenvectors,
-		const Eigen::MatrixXd& eigenvectors_reduced,
-		const Eigen::MatrixXd& globalDOFMatrix,
-		const int& numDOF,
+	void get_global_modal_vector_matrix(Eigen::MatrixXd& reduced_eigenVectorsMatrix,
+		const modal_analysis_result_store& modal_results,
 		int& reducedDOF,
 		std::ofstream& output_file);
 
-	void sort_eigen_values_vectors(Eigen::VectorXd& eigenvalues,
-		Eigen::MatrixXd& eigenvectors,
-		const int& m_size);
 
-	void normalize_eigen_vectors(Eigen::MatrixXd& eigenvectors,
-		const int& m_size);
-
-	Eigen::MatrixXd convert_vector_to_1Dmatrix(const std::vector<double>& vec);
-
-	int get_number_of_rigid_body_modes(int num_of_nodes,
-		const Eigen::MatrixXd& globalDOFMatrix);
-
-	void map_analysis_results(const nodes_list_store& model_nodes,
-		const elementline_list_store& model_lineelements,
-		const nodeconstraint_list_store& model_constarints,
-		const modal_analysis_result_store& modal_results,
-		modal_nodes_list_store& modal_result_nodes,
-		modal_elementline_list_store& modal_result_lineelements,
-		std::ofstream& output_file);
 
 };
-
-

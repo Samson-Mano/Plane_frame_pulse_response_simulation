@@ -73,9 +73,11 @@ void app_window::init()
 	op_window.init(); // Option window
 	ptm_window.init(); // Point mass window
 	sol_modal_window.init(); // Modal analysis solver window
+	sol_freq_window.init(); // Frequency response solver window
+	sol_pulse_window.init(); // Pulse response solver window
 
 	// Initialize the geometry
-	geom.init(&op_window,&mat_window,&sol_modal_window);
+	geom.init(&op_window,&mat_window,&sol_modal_window,&sol_freq_window,&sol_pulse_window);
 
 
 	// Set the mouse button callback function with the user pointer pointing to the mouseHandler object
@@ -285,14 +287,23 @@ void app_window::menu_events()
 					sol_modal_window.execute_open = true;
 				}
 			}
-			if (ImGui::MenuItem("FE Analysis"))
+			if (ImGui::MenuItem("Frequency Response Analysis"))
 			{
-				// Handle menu FE Analysis
-				//if (geom.is_geometry_set == true)
-				//{
-				//	fe_window.execute_open = true;
-				//	fe_window.is_show_window = true;
-				//}
+				// Handle menu Frequency Response Analysis
+				if (geom.is_geometry_set == true)
+				{
+					sol_freq_window.is_show_window = true;
+					sol_freq_window.execute_open = true;
+				}
+			}
+			if (ImGui::MenuItem("Pulse Response Analysis"))
+			{
+				// Handle menu Pulse Response Analysis
+				if (geom.is_geometry_set == true)
+				{
+					sol_pulse_window.is_show_window = true;
+					sol_pulse_window.execute_open = true;
+				}
 			}
 			ImGui::EndMenu();
 		}
@@ -307,7 +318,8 @@ void app_window::menu_events()
 	op_window.render_window();
 	ptm_window.render_window();
 	sol_modal_window.render_window();
-	//fe_window.render_window();
+	sol_freq_window.render_window();
+	sol_pulse_window.render_window();
 
 	// Pop the custom font after using it
 	ImGui::PopFont();

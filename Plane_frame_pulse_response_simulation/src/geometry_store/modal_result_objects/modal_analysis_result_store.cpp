@@ -24,13 +24,15 @@ void modal_analysis_result_store::add_node_map(std::unordered_map<int, int>& nod
 	this->nodeid_map = nodeid_map;
 }
 
-void modal_analysis_result_store::add_eigen_data(int mode_number, double eigen_value, std::vector<double> eigen_vector)
+void modal_analysis_result_store::add_eigen_data(int mode_number, double eigen_value, std::vector<double> eigen_vectors, std::vector<double> eigen_vectors_reduced)
 {
 	// insert the eigen value
 	eigen_values.insert({ mode_number,eigen_value });
 
 	// insert the eigen vectors of this particular eigen value
-	eigen_vectors.insert({ mode_number,eigen_vector });
+	this->eigen_vectors.insert({ mode_number,eigen_vectors });
+
+	this->eigen_vectors_reduced.insert({ mode_number,eigen_vectors });
 
 	// Iterate the number of modes
 	number_of_modes++;
