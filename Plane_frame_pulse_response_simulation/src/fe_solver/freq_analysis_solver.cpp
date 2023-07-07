@@ -146,7 +146,7 @@ void freq_analysis_solver::freq_analysis_start(const nodes_list_store& model_nod
 	Eigen::MatrixXd reduced_eigenVectorsMatrix(reducedDOF, reducedDOF);
 	reduced_eigenVectorsMatrix.setZero();
 
-	get_global_modal_vector_matrix(reduced_eigenVectorsMatrix, modal_results, reducedDOF, output_file);
+	get_reduced_modal_vector_matrix(reduced_eigenVectorsMatrix, modal_results, reducedDOF, output_file);
 
 	// Create modal mass matrix
 	Eigen::MatrixXd modalMassMatrix(reducedDOF, reducedDOF);
@@ -166,38 +166,92 @@ void freq_analysis_solver::freq_analysis_start(const nodes_list_store& model_nod
 
 	modalForceMatrix = reduced_eigenVectorsMatrix.transpose() * reduced_globalLoadMatrix;
 
+	// Create the global support inclination matrix
+	Eigen::MatrixXd globalSupportInclinationMatrix(numDOF, numDOF);
+	globalSupportInclinationMatrix.setZero();
+
+
+	get_globalSupportInclinationMatrix(globalSupportInclinationMatrix,
+		model_nodes,
+		model_constarints,
+		numDOF,
+		output_file);
+
 	//____________________________________________________________________________________________________________________
 	// Frequency response
 
-	for (double f = freq_start; f <= freq_end; f += freq_interval)
+	for (double freq = freq_start; freq <= freq_end; freq += freq_interval)
 	{
+		// Eigen vector row matrix
+		Eigen::MatrixXd displ_ampl_RespMatrix_reduced(reducedDOF, 1);
+		Eigen::MatrixXd displ_phase_RespMatrix_reduced(reducedDOF, 1);
+
+		// Displacement matrix column 
 		for (int i = 0; i < reducedDOF; i++)
 		{
-			double modalMass = modalMassMatrix(i, i);
-			double modalStiff = modalStiffMatrix(i, i);
-			double modalForceampl = modalForceMatrix(i, 0);
-			double modalomega_n = std::sqrt(modalStiff / modalMass);
+				double modalMass = modalMassMatrix(i, i);
+				double modalStiff = modalStiffMatrix(i, i);
+				double modalForceampl = modalForceMatrix(i, 0);
+				double modalomega_n = std::sqrt(modalStiff / modalMass);
 
-			// Angular frequency ratio
-			double omega_ratio = (2 * m_pi * f) / modalomega_n;
-			double omega_ratio_sq = omega_ratio * omega_ratio;
+				// Angular frequency ratio
+				double omega_ratio = (2 * m_pi * freq) / modalomega_n;
+				double omega_ratio_sq = omega_ratio * omega_ratio;
 
-			// Maximum response
-			double max_resp = (modalForceampl / modalStiff) * 
-				(1 / std::sqrt(std::pow((1- omega_ratio_sq), 2) + std::pow((2 * damping_ratio * omega_ratio),2)));
-			
-			// Phase of the response
-			double resp_phase = std::atan2((2 * damping_ratio * omega_ratio), (1 - omega_ratio_sq));
+				// Maximum displacement response
+				double max_displ_ampl_resp = (modalForceampl / modalStiff) *
+					(1 / std::sqrt(std::pow((1 - omega_ratio_sq), 2) + std::pow((2 * damping_ratio * omega_ratio), 2)));
+
+				displ_ampl_RespMatrix_reduced.coeffRef(i, 0) = max_displ_ampl_resp;
+
+				// Phase of the maximum displacement response
+				double max_displ_phase_resp = std::atan2((2 * damping_ratio * omega_ratio), (1 - omega_ratio_sq));
+
+				displ_phase_RespMatrix_reduced.coeffRef(i, 0) = max_displ_phase_resp;
+		}
+
+		// Apply modal de-transformation
+		displ_ampl_RespMatrix_reduced = reduced_eigenVectorsMatrix * displ_ampl_RespMatrix_reduced;
+
+		displ_phase_RespMatrix_reduced = reduced_eigenVectorsMatrix * displ_phase_RespMatrix_reduced;
+
+		//_______________________________________________________________________________________________________________ 
+		// Convert the reduced displacement amplitude and phase response with global ( including constraint location)
+		Eigen::MatrixXd displ_ampl_RespMatrix(numDOF, 1);
+		Eigen::MatrixXd displ_phase_RespMatrix(numDOF, 1);
+
+		get_global_resp_matrix(displ_ampl_RespMatrix,
+			displ_phase_RespMatrix,
+			displ_ampl_RespMatrix_reduced,
+			displ_phase_RespMatrix_reduced,
+			globalDOFMatrix,
+			numDOF,
+			reducedDOF,
+			output_file);
+
+		// Apply support inclination transformation
+		displ_ampl_RespMatrix = globalSupportInclinationMatrix * displ_ampl_RespMatrix;
+
+		displ_phase_RespMatrix = globalSupportInclinationMatrix * displ_phase_RespMatrix;
+
+		// Map the results to node
+		for (auto& nd_m : model_nodes.nodeMap)
+		{
+			// Get the node data
+			node_store nd = nd_m.second;
+			int nd_map = nodeid_map[nd.node_id]; // get the ordered map of the node ID
+
+			// Add the response
+			freq_response_result.add_node_response(nd.node_id,
+				freq,
+				displ_ampl_RespMatrix((nd_map * 3) + 0, 0),
+				displ_phase_RespMatrix((nd_map * 3) + 0, 0),
+				displ_ampl_RespMatrix((nd_map * 3) + 1, 0),
+				displ_phase_RespMatrix((nd_map * 3) + 1, 0),
+				displ_ampl_RespMatrix((nd_map * 3) + 2, 0),
+				displ_phase_RespMatrix((nd_map * 3) + 2, 0));
 		}
 	}
-
-
-
-
-
-
-
-
 }
 
 
@@ -746,7 +800,7 @@ void freq_analysis_solver::get_reduced_global_matrices(Eigen::MatrixXd& reduced_
 	}
 }
 
-void freq_analysis_solver::get_global_modal_vector_matrix(Eigen::MatrixXd& reduced_eigenVectorsMatrix,
+void freq_analysis_solver::get_reduced_modal_vector_matrix(Eigen::MatrixXd& reduced_eigenVectorsMatrix,
 	const modal_analysis_result_store& modal_results,
 	int& reducedDOF,
 	std::ofstream& output_file)
@@ -765,6 +819,108 @@ void freq_analysis_solver::get_global_modal_vector_matrix(Eigen::MatrixXd& reduc
 		// Print the Reduced Global Eigen Vector matrix
 		output_file << "Reduced Global EigenVector Matrix" << std::endl;
 		output_file << reduced_eigenVectorsMatrix << std::endl;
+		output_file << std::endl;
+	}
+}
+
+void freq_analysis_solver::get_global_resp_matrix(Eigen::MatrixXd& displ_ampl_RespMatrix,
+	Eigen::MatrixXd& displ_phase_RespMatrix,
+	const Eigen::MatrixXd& displ_ampl_RespMatrix_reduced,
+	const Eigen::MatrixXd& displ_phase_RespMatrix_reduced,
+	const Eigen::MatrixXd& globalDOFMatrix,
+	const int& numDOF,
+	int& reducedDOF,
+	std::ofstream& output_file)
+{
+	// Get global response matrix from the reduced matrices
+	// Loop throug the Degree of freedom of indices
+
+	// J loops through number of modes (along the column)
+	for (int j = 0; j < reducedDOF; j++)
+	{
+		int s = 0;
+		// i loops through the number of nodes (along the row)
+		for (int i = 0; i < numDOF; i++)
+		{
+			if (globalDOFMatrix(i, 0) == 0)
+			{
+				// constrained row index, so Displacement is Zero
+				displ_ampl_RespMatrix.coeffRef(i, j) = 0;
+				displ_phase_RespMatrix.coeffRef(i, j) = 0;
+			}
+			else
+			{
+				// Un constrained row index, so Displacement is Zero
+				displ_ampl_RespMatrix.coeffRef(i, j) = displ_ampl_RespMatrix_reduced.coeffRef(s, j);
+				displ_phase_RespMatrix.coeffRef(i, j) = displ_phase_RespMatrix_reduced.coeffRef(s, j);
+				s++;
+			}
+		}
+	}
+}
+
+void freq_analysis_solver::get_globalSupportInclinationMatrix(Eigen::MatrixXd globalSupportInclinationMatrix,
+	const nodes_list_store& model_nodes,
+	const nodeconstraint_list_store& model_constarints,
+	const int& numDOF,
+	std::ofstream& output_file)
+{
+	// Create the global support inclination matrix
+	int node_id = 0;
+
+	// Transform the Nodal results with support inclination
+	double constraint_angle_rad = 0.0;
+	double support_Lcos = 0.0;
+	double support_Msin = 0.0;
+
+	for (auto& nd_m : model_nodes.nodeMap)
+	{
+		node_id = nd_m.first;
+		int matrix_index = nodeid_map[node_id];
+
+
+		if (model_constarints.constraintMap.find(node_id) == model_constarints.constraintMap.end())
+		{
+			// No constraint is in this node
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 0, (matrix_index * 3) + 0) = 1.0;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 0, (matrix_index * 3) + 1) = 0.0;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 0, (matrix_index * 3) + 2) = 0.0;
+
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 1, (matrix_index * 3) + 0) = 0.0;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 1, (matrix_index * 3) + 1) = 1.0;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 1, (matrix_index * 3) + 2) = 0.0;
+
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 2, (matrix_index * 3) + 0) = 0.0;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 2, (matrix_index * 3) + 1) = 0.0;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 2, (matrix_index * 3) + 2) = 1.0;
+		}
+		else
+		{
+			// Constraint present in this node
+			constraint_angle_rad = (model_constarints.constraintMap.at(node_id).constraint_angle - 90.0f) * (m_pi / 180.0f); // Constrint angle in radians
+			support_Lcos = std::cos(constraint_angle_rad); // cosine of support inclination
+			support_Msin = std::sin(constraint_angle_rad); // sine of support inclination
+
+			// Pin or Roller Support
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 0, (matrix_index * 3) + 0) = support_Lcos;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 0, (matrix_index * 3) + 1) = -1.0 * support_Msin;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 0, (matrix_index * 3) + 2) = 0.0;
+
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 1, (matrix_index * 3) + 0) = support_Msin;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 1, (matrix_index * 3) + 1) = support_Lcos;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 1, (matrix_index * 3) + 2) = 0.0;
+
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 2, (matrix_index * 3) + 0) = 0.0;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 2, (matrix_index * 3) + 1) = 0.0;
+			globalSupportInclinationMatrix.coeffRef((matrix_index * 3) + 2, (matrix_index * 3) + 2) = 1.0;
+		}
+	}
+
+	if (print_matrix == true)
+	{
+		// Print the Global support inclination matrix
+		output_file << "Global Support Inclination Matrix" << std::endl;
+		output_file << globalSupportInclinationMatrix << std::endl;
 		output_file << std::endl;
 	}
 }

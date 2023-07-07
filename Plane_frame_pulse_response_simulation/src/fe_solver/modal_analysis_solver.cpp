@@ -298,7 +298,7 @@ void modal_analysis_solver::modal_analysis_start(const nodes_list_store& model_n
 	modal_result_nodes.clear_data();
 	modal_result_lineelements.clear_data();
 
-	map_analysis_results(model_nodes,
+	map_modal_analysis_results(model_nodes,
 		model_lineelements,
 		model_constarints,
 		modal_results,
@@ -958,7 +958,7 @@ void modal_analysis_solver::get_global_modal_vector_matrix(Eigen::MatrixXd& eige
 	}
 }
 
-void modal_analysis_solver::map_analysis_results(const nodes_list_store& model_nodes,
+void modal_analysis_solver::map_modal_analysis_results(const nodes_list_store& model_nodes,
 	const elementline_list_store& model_lineelements,
 	const nodeconstraint_list_store& model_constarints,
 	const modal_analysis_result_store& modal_results,

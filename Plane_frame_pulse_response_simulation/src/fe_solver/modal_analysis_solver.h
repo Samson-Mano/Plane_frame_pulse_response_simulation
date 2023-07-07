@@ -110,7 +110,7 @@ private:
 	int get_number_of_rigid_body_modes(int num_of_nodes,
 		const Eigen::MatrixXd& globalDOFMatrix);
 
-	void map_analysis_results(const nodes_list_store& model_nodes,
+	void map_modal_analysis_results(const nodes_list_store& model_nodes,
 		const elementline_list_store& model_lineelements,
 		const nodeconstraint_list_store& model_constarints,
 		const modal_analysis_result_store& modal_results,

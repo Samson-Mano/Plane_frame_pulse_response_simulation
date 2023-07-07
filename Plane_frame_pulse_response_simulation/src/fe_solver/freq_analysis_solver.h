@@ -111,11 +111,24 @@ private:
 		const int& numDOF,
 		std::ofstream& output_file);
 
-	void get_global_modal_vector_matrix(Eigen::MatrixXd& reduced_eigenVectorsMatrix,
+	void get_reduced_modal_vector_matrix(Eigen::MatrixXd& reduced_eigenVectorsMatrix,
 		const modal_analysis_result_store& modal_results,
 		int& reducedDOF,
 		std::ofstream& output_file);
 
+	void get_global_resp_matrix(Eigen::MatrixXd& displ_ampl_RespMatrix,
+		Eigen::MatrixXd& displ_phase_RespMatrix,
+		const Eigen::MatrixXd& displ_ampl_RespMatrix_reduced,
+		const Eigen::MatrixXd& displ_phase_RespMatrix_reduced,
+		const Eigen::MatrixXd& globalDOFMatrix,
+		const int& numDOF,
+		int& reducedDOF,
+		std::ofstream& output_file);
 
+	void get_globalSupportInclinationMatrix(Eigen::MatrixXd globalSupportInclinationMatrix,
+		const nodes_list_store& model_nodes,
+		const nodeconstraint_list_store& model_constarints,
+		const int& numDOF,
+		std::ofstream& output_file);
 
 };
