@@ -122,8 +122,54 @@ void frequency_response_window::render_window()
 	ImGui::SameLine();
 	ImGui::Text("End Frequency = %.3f", frequency_end_val);
 	//_________________________________________________________________________________________
+	// Input box to give input via text
+	static bool frequencyinterval_input_mode = false;
+	static char frequencyinterval_str[16] = ""; // buffer to store input load string
+	static float frequencyinterval_input = static_cast<float>(frequency_interval); // buffer to store input load End Time
 
-	// Add a Modal Analysis button
+	// Button to switch to input mode
+	if (!frequencyinterval_input_mode)
+	{
+		if (ImGui::Button("Frequency Interval"))
+		{
+			frequencyinterval_input_mode = true;
+			snprintf(frequencyinterval_str, 16, "%.3f", frequencyinterval_input); // set the buffer to current load End Time
+		}
+	}
+	else // input mode
+	{
+		// Text box to input load End Time
+		ImGui::SetNextItemWidth(60.0f);
+		if (ImGui::InputText("##InputFrequencyInterval", frequencyinterval_str, IM_ARRAYSIZE(frequencyinterval_str), ImGuiInputTextFlags_CharsDecimal))
+		{
+			// convert the input string to int
+			frequencyinterval_input = static_cast<float>(atof(frequencyinterval_str));
+			// set the load End Time to input value
+			if (frequencyinterval_input < (frequency_end_val - frequency_start_val))
+			{
+				frequency_interval = frequencyinterval_input;
+			}
+			else
+			{
+				frequencyinterval_input = static_cast<float>(frequency_interval);
+			}
+		}
+
+		// Button to switch back to slider mode
+		ImGui::SameLine();
+		if (ImGui::Button("OK"))
+		{
+			frequencyinterval_input_mode = false;
+		}
+	}
+
+	// Text for load End Time
+	ImGui::SameLine();
+	ImGui::Text("Frequency interval = %.3f", frequency_interval);
+	//_________________________________________________________________________________________
+
+
+	// Add a Frequency Analysis button
 	if (ImGui::Button("Frequency Response Analysis"))
 	{
 		execute_freq_analysis = true;
@@ -144,13 +190,55 @@ void frequency_response_window::render_window()
 	//_________________________________________________________________________________________
 	if (freq_response_analysis_complete == true)
 	{
-		// Create the node numbers and response
+		// Create the node numbers combo box
+		// Convert the vector of strings to a vector of const char*
+		std::vector<const char*> node_id_list;
+		int node_count = static_cast<int>(freq_response_result.node_id_values.size());
+		node_id_list.reserve(node_count);
+		for (const auto& item : freq_response_result.node_id_values)
+		{
+			node_id_list.push_back(("Node: " + std::to_string(item)).c_str());
+		}
 
+		// ImGui::Text("Selected Node: %s", std::to_string(freq_response_result.node_id_values[selected_node_id]).c_str());
+		// Render the drop-down list box
+		ImGui::Combo("Selected Node", &selected_node_id, node_id_list.data(), static_cast<int> (node_id_list.size()));
+
+		// Render the response drop down list
+		const char* resp_str[] = { "Displacement resultant", "X Response", "Y Reponse" ,"XY Reponse" };
+
+		ImGui::Combo("Selected Response Type", &selected_resp, resp_str, 4);
 
 		// Post the responses
+		static std::vector<float> freq_xValues;
+		static std::vector<float> ampl_yValues;
+		static std::vector<float> phase_yValues;
 
+		response_data r = freq_response_result.x_response_data[selected_node_id];
 
+		for (int i = 0; i < static_cast<int>(r.ampl_values.size()); i++) 
+		{
+			freq_xValues.push_back(static_cast<float>(r.freq_values[i]));
+			ampl_yValues.push_back(static_cast<float>(r.ampl_values[i]));
+			phase_yValues.push_back(static_cast<float>(r.phase_values[i]));
+		}
 
+		// Plot the amplitude response
+		//if (ImPlot::BeginPlot("My Plot")) 
+		//{
+		//	static float xs[100], ys[100];
+		//	for (int i = 0; i < 100; i++) {
+		//		xs[i] = i * 0.1f;
+		//		ys[i] = sin(xs[i]);
+		//	}
+		//	ImPlot::PlotLine("Sine Wave", xs, ys, 100);
+		//	ImPlot::EndPlot();
+		//}
+
+		ImPlot::PlotLine("Amplitude Plot", freq_xValues.data(), ampl_yValues.data(), static_cast<int>(freq_xValues.size()));
+
+		// Plot the phase response
+		ImPlot::PlotLine("Phase Plot", freq_xValues.data(), phase_yValues.data(), static_cast<int>(freq_xValues.size()));
 	}
 
 

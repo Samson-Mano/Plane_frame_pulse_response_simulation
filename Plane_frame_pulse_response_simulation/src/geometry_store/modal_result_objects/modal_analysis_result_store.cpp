@@ -32,7 +32,7 @@ void modal_analysis_result_store::add_eigen_data(int mode_number, double eigen_v
 	// insert the eigen vectors of this particular eigen value
 	this->eigen_vectors.insert({ mode_number,eigen_vectors });
 
-	this->eigen_vectors_reduced.insert({ mode_number,eigen_vectors });
+	this->eigen_vectors_reduced.insert({ mode_number, eigen_vectors_reduced });
 
 	// Iterate the number of modes
 	number_of_modes++;

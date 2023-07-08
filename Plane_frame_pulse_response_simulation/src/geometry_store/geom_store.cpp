@@ -801,7 +801,7 @@ void geom_store::paint_geometry()
 	paint_modal_analysis();
 
 	// Frequency Response Analysis
-
+	paint_freq_analysis();
 }
 
 void geom_store::paint_model()
@@ -906,7 +906,7 @@ void geom_store::paint_modal_analysis()
 		}
 
 		// Update the deflection scale
-		geom_param.normalized_defl_scale = sol_modal_window->normailzed_defomation_scale;
+		geom_param.normalized_defl_scale = std::abs(sol_modal_window->normailzed_defomation_scale);
 		geom_param.defl_scale = sol_modal_window->deformation_scale;
 
 		// Update the deflection scale
@@ -995,6 +995,9 @@ void geom_store::paint_freq_analysis()
 			sol_freq_window->freq_response_analysis_complete = false;
 			// Fill the results
 			sol_freq_window->freq_response_result.clear_data();
+			// Clear the data
+			sol_freq_window->selected_node_id = 0;
+			sol_freq_window->selected_resp = 0;
 		}
 
 		sol_modal_window->execute_close = false;
@@ -1024,6 +1027,9 @@ void geom_store::paint_freq_analysis()
 				sol_freq_window->freq_response_analysis_complete = true;
 				// Fill the results
 				sol_freq_window->freq_response_result = freq_response_result;
+
+				sol_freq_window->selected_node_id = 0;
+				sol_freq_window->selected_resp = 0;
 			}
 
 		}
@@ -1056,6 +1062,9 @@ void geom_store::paint_freq_analysis()
 			sol_freq_window->freq_response_analysis_complete = true;
 			// Fill the results
 			sol_freq_window->freq_response_result = freq_response_result;
+
+			sol_freq_window->selected_node_id = 0;
+			sol_freq_window->selected_resp = 0;
 		}
 
 		sol_freq_window->execute_freq_analysis = false;

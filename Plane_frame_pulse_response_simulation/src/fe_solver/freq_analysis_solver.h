@@ -1,4 +1,5 @@
 #pragma once
+#pragma once
 #include <iostream>
 #include <fstream>
 
@@ -111,18 +112,52 @@ private:
 		const int& numDOF,
 		std::ofstream& output_file);
 
+	void get_modal_matrices(std::vector<double>& modalMass,
+		std::vector<double>& modalStiff,
+		std::vector<double>& modalForce,
+		const Eigen::MatrixXd& reduced_eigenVectorsMatrix,
+		const Eigen::MatrixXd& reduced_globalMassMatrix,
+		const Eigen::MatrixXd& reduced_globalStiffnessMatrix,
+		const Eigen::MatrixXd& reduced_globalLoadMatrix,
+		const int& reducedDOF);
+
 	void get_reduced_modal_vector_matrix(Eigen::MatrixXd& reduced_eigenVectorsMatrix,
 		const modal_analysis_result_store& modal_results,
 		int& reducedDOF,
 		std::ofstream& output_file);
 
-	void get_global_resp_matrix(Eigen::MatrixXd& displ_ampl_RespMatrix,
+	void get_global_response(Eigen::MatrixXd& displ_ampl_RespMatrix,
 		Eigen::MatrixXd& displ_phase_RespMatrix,
+		const Eigen::MatrixXd& reduced_eigenVectorsMatrix,
+		const Eigen::MatrixXd& globalDOFMatrix,
+		const Eigen::MatrixXd& globalSupportInclinationMatrix,
+		const std::vector<double>& modalMass,
+		const std::vector<double>& modalStiff,
+		const std::vector<double>& modalForce,
+		const double& forcing_freq,
+		const double& damping_ratio,
+		const int& reducedDOF,
+		const int& numDOF,
+		std::ofstream& output_file);
+
+	void get_reducedmodal_resp_matrix(Eigen::MatrixXd& displ_ampl_RespMatrix_reduced,
+		Eigen::MatrixXd& displ_phase_RespMatrix_reduced,
+		const Eigen::MatrixXd& reduced_eigenVectorsMatrix,
+		const std::vector<double>& modalMass,
+		const std::vector<double>& modalStiff,
+		const std::vector<double>& modalForce,
+		const double& forcing_freq,
+		const double& damping_ratio,
+		const int& reducedDOF,
+		const int& numDOF);
+
+	void get_global_resp_matrix(Eigen::MatrixXd& displ_ampl_RespMatrix_b4supp_trans,
+		Eigen::MatrixXd& displ_phase_RespMatrix_b4supp_trans,
 		const Eigen::MatrixXd& displ_ampl_RespMatrix_reduced,
 		const Eigen::MatrixXd& displ_phase_RespMatrix_reduced,
 		const Eigen::MatrixXd& globalDOFMatrix,
 		const int& numDOF,
-		int& reducedDOF,
+		const int& reducedDOF,
 		std::ofstream& output_file);
 
 	void get_globalSupportInclinationMatrix(Eigen::MatrixXd globalSupportInclinationMatrix,
