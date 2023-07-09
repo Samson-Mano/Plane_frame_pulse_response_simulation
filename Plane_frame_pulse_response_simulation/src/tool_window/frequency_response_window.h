@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+
 #include "../ImGui/imgui.h"
 #include "../ImGui/imgui_impl_glfw.h"
 #include "../ImGui/imgui_impl_opengl3.h"
@@ -25,6 +26,11 @@ public:
 	bool execute_freq_analysis = false; // Main solver run event flag
 	bool execute_open = false; // Solver window execute opening event flag
 	bool execute_close = false; // Closing of solution window event flag
+
+	// Modal frequency start and end value
+	double modal_first_frequency = 0.0;
+	double modal_end_frequency = 0.0;
+	int number_of_modes = 0;
 
 	// Inputs for response calculation
 	double frequency_start_val = 0.1;

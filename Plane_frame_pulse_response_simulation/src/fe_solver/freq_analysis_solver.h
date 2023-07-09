@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 #include <iostream>
 #include <fstream>
 
@@ -160,7 +159,7 @@ private:
 		const int& reducedDOF,
 		std::ofstream& output_file);
 
-	void get_globalSupportInclinationMatrix(Eigen::MatrixXd globalSupportInclinationMatrix,
+	void get_globalSupportInclinationMatrix(Eigen::MatrixXd& globalSupportInclinationMatrix,
 		const nodes_list_store& model_nodes,
 		const nodeconstraint_list_store& model_constarints,
 		const int& numDOF,

@@ -38,6 +38,7 @@
 class geom_store
 {
 public:
+	const double m_pi = 3.14159265358979323846;
 	bool is_geometry_set = false;
 
 	// Main Variable to strore the geometry parameters
@@ -116,4 +117,5 @@ private:
 	void paint_model(); // Paint the model
 	void paint_modal_analysis(); // Paint the modal analysis results
 	void paint_freq_analysis(); // Paint the frequency response analysis results
+	void paint_pulse_analysis(); // Paint the pulse response analysis results
 };

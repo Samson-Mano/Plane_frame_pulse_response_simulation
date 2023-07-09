@@ -175,23 +175,25 @@ void freq_analysis_solver::freq_analysis_start(const nodes_list_store& model_nod
 		numDOF,
 		output_file);
 
-	//____________________________________________________________________________________________________________________
-	// Populate the frequency to the list
-	std::vector<double> forcing_freq_list;
-
-	for (double freq = freq_start; freq <= freq_end; freq += freq_interval)
+	if (print_matrix == true)
 	{
-		forcing_freq_list.push_back(freq);
+		output_file << "Global support inclination matrix" << std::endl;
+		output_file << globalSupportInclinationMatrix << std::endl;
+		output_file << std::endl;
 	}
 
+
+	//____________________________________________________________________________________________________________________
 	// Frequency response
 	freq_response_result.clear_data();
 
-
-	for (auto& forcing_freq : forcing_freq_list)
+	for (double forcing_freq = freq_start; forcing_freq <= freq_end; forcing_freq += freq_interval)
 	{
 		Eigen::MatrixXd displ_ampl_RespMatrix(numDOF, 1);
 		Eigen::MatrixXd displ_phase_RespMatrix(numDOF, 1);
+
+		displ_ampl_RespMatrix.setZero();
+		displ_phase_RespMatrix.setZero();
 
 		get_global_response(displ_ampl_RespMatrix,
 			displ_phase_RespMatrix,
@@ -230,7 +232,7 @@ void freq_analysis_solver::freq_analysis_start(const nodes_list_store& model_nod
 	for (auto& nd_m : model_nodes.nodeMap)
 	{
 		// Add the node id
-		freq_response_result.node_id_values.push_back(nd_m.second.node_id);
+		freq_response_result.node_id_str.push_back("Node: " + std::to_string(nd_m.second.node_id));
 	}
 
 	is_freq_analysis_complete = true;
@@ -903,10 +905,17 @@ void freq_analysis_solver::get_global_response(Eigen::MatrixXd& displ_ampl_RespM
 		reducedDOF,
 		output_file);
 
-	// Apply support inclination transformation
-	displ_ampl_RespMatrix.setZero();
-	displ_phase_RespMatrix.setZero();
 
+	//if (print_matrix == true)
+	//{
+	//	output_file << "Global support " << forcing_freq << std::endl;
+	//	output_file << globalSupportInclinationMatrix << std::endl;
+	//	output_file << std::endl;
+	//}
+
+
+
+	// Apply support inclination transformation
 	displ_ampl_RespMatrix = globalSupportInclinationMatrix * displ_ampl_RespMatrix_b4supp_trans;
 
 	displ_phase_RespMatrix = globalSupportInclinationMatrix * displ_phase_RespMatrix_b4supp_trans;
@@ -992,7 +1001,7 @@ void freq_analysis_solver::get_global_resp_matrix(Eigen::MatrixXd& displ_ampl_Re
 	}
 }
 
-void freq_analysis_solver::get_globalSupportInclinationMatrix(Eigen::MatrixXd globalSupportInclinationMatrix,
+void freq_analysis_solver::get_globalSupportInclinationMatrix(Eigen::MatrixXd& globalSupportInclinationMatrix,
 	const nodes_list_store& model_nodes,
 	const nodeconstraint_list_store& model_constarints,
 	const int& numDOF,

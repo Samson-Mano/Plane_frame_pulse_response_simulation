@@ -14,9 +14,29 @@ public:
 	bool execute_open = false; // Solver window open event flag
 	bool execute_close = false; // Closing of solution window event flag
 
+	// Inputs for response calculation
+	double time_start_val = 0.0;
+	double time_end_val = 10.0;
+	double time_interval = 0.1;
+	
+	// Modal analysis Results
+	double modal_first_frequency = 0.0;
+	double modal_end_frequency = 0.0;
+	int number_of_modes = 0;
 
 	// Pulse response analysis results
 	bool pulse_response_analysis_complete = false;
+	
+	bool show_undeformed_model = true; // show undeformed model 
+
+	// Animation control
+	bool animate_play = true;
+	bool animate_pause = false;
+	double time_val = 0.0;
+	double deformation_scale_max = 10.0;
+	double animation_speed = 10.0;
+	double normailzed_defomation_scale = 0.0;
+	double deformation_scale = 0.0;
 
 
 

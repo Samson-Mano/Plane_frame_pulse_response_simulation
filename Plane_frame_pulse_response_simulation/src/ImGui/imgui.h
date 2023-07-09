@@ -20,6 +20,12 @@
 // - For first-time users having issues compiling/linking/running or issues loading fonts:
 //   please post in https://github.com/ocornut/imgui/discussions if you cannot find a solution in resources above.
 
+
+#pragma warning(push)
+#pragma warning (disable : 33011)
+#pragma warning (disable : 33010)
+
+
 // Library Version
 // (Integer encoded as XYYZZ for use in #if preprocessor conditionals, e.g. '#if IMGUI_VERSION_NUM > 12345')
 #define IMGUI_VERSION               "1.89.6 WIP"
@@ -3138,3 +3144,5 @@ enum ImGuiModFlags_ { ImGuiModFlags_None = 0, ImGuiModFlags_Ctrl = ImGuiMod_Ctrl
 #endif
 
 #endif // #ifndef IMGUI_DISABLE
+
+#pragma warning(pop)

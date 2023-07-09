@@ -29,10 +29,8 @@ void frequency_response_window::render_window()
 
 	// Show Modal analysis results
 	//________________________________________________________________________________________
-
-
-
-
+	ImGui::Text("Start Mode 1 Frequency = %.3f Hz", static_cast<float>(modal_first_frequency));
+	ImGui::Text("End Mode %i Frequency = %.3f Hz",number_of_modes ,static_cast<float>(modal_end_frequency));
 
 	ImGui::Spacing();
 	// Frequency range
@@ -175,7 +173,6 @@ void frequency_response_window::render_window()
 		execute_freq_analysis = true;
 	}
 
-
 	ImGui::Spacing();
 
 	//_________________________________________________________________________________________
@@ -193,11 +190,11 @@ void frequency_response_window::render_window()
 		// Create the node numbers combo box
 		// Convert the vector of strings to a vector of const char*
 		std::vector<const char*> node_id_list;
-		int node_count = static_cast<int>(freq_response_result.node_id_values.size());
+		int node_count = static_cast<int>(freq_response_result.node_id_str.size());
 		node_id_list.reserve(node_count);
-		for (const auto& item : freq_response_result.node_id_values)
+		for (const auto& item : freq_response_result.node_id_str)
 		{
-			node_id_list.push_back(("Node: " + std::to_string(item)).c_str());
+			node_id_list.push_back(item.c_str());
 		}
 
 		// ImGui::Text("Selected Node: %s", std::to_string(freq_response_result.node_id_values[selected_node_id]).c_str());
@@ -209,36 +206,78 @@ void frequency_response_window::render_window()
 
 		ImGui::Combo("Selected Response Type", &selected_resp, resp_str, 4);
 
-		// Post the responses
-		static std::vector<float> freq_xValues;
-		static std::vector<float> ampl_yValues;
-		static std::vector<float> phase_yValues;
+		response_data r;
+		
+		// Type of response
+		if (selected_resp == 0)
+		{
+			// Displacement resultant
+			r = freq_response_result.displ_response_data[selected_node_id];
+		}
+		else if (selected_resp == 1)
+		{
+			// X response
+			r = freq_response_result.x_response_data[selected_node_id];
+		}
+		else if (selected_resp == 2)
+		{
+			// Y response
+			r = freq_response_result.y_response_data[selected_node_id];
+		}
+		else if (selected_resp == 2)
+		{
+			// XY response
+			r = freq_response_result.xy_response_data[selected_node_id];
+		}
 
-		response_data r = freq_response_result.x_response_data[selected_node_id];
+		// Post the responses
+		std::vector<float> freq_xValues(static_cast<int>(r.ampl_values.size()));
+		std::vector<float> ampl_yValues(static_cast<int>(r.ampl_values.size()));
+		std::vector<float> phase_yValues(static_cast<int>(r.ampl_values.size()));
 
 		for (int i = 0; i < static_cast<int>(r.ampl_values.size()); i++) 
 		{
-			freq_xValues.push_back(static_cast<float>(r.freq_values[i]));
-			ampl_yValues.push_back(static_cast<float>(r.ampl_values[i]));
-			phase_yValues.push_back(static_cast<float>(r.phase_values[i]));
+			freq_xValues[i] = static_cast<float>(r.freq_values[i]);
+			ampl_yValues[i] = static_cast<float>(r.ampl_values[i]);
+			phase_yValues[i] =  static_cast<float>(r.phase_values[i]);
+		}
+
+
+		ImPlot::CreateContext();
+
+		// Plot the amplitude response
+		if (ImPlot::BeginPlot("Amplitude Plot"))
+		{
+			ImPlot::SetupAxes("Frequency (Hz)", "Amplitude");
+			ImPlot::SetupAxesLimits(static_cast<float>(r.min_freq) - ((static_cast<float>(r.max_freq) - static_cast<float>(r.min_freq))*0.1), 
+				static_cast<float>(r.max_freq) + ((static_cast<float>(r.max_freq) - static_cast<float>(r.min_freq)) * 0.1),
+				static_cast<float>(r.min_ampl) - ((static_cast<float>(r.max_ampl) - static_cast<float>(r.min_ampl)) * 0.1),
+				static_cast<float>(r.max_ampl) + ((static_cast<float>(r.max_ampl) - static_cast<float>(r.min_ampl)) * 0.1));
+
+			ImPlot::SetNextLineStyle(ImVec4(1, 0, 0, 1), 2.0f); // Set line color to red and width to 2.0f
+
+			// Plot the amplitude
+			ImPlot::PlotLine("Amplitude", freq_xValues.data(), ampl_yValues.data(), static_cast<int>(freq_xValues.size()));
+			ImPlot::EndPlot();
 		}
 
 		// Plot the amplitude response
-		//if (ImPlot::BeginPlot("My Plot")) 
-		//{
-		//	static float xs[100], ys[100];
-		//	for (int i = 0; i < 100; i++) {
-		//		xs[i] = i * 0.1f;
-		//		ys[i] = sin(xs[i]);
-		//	}
-		//	ImPlot::PlotLine("Sine Wave", xs, ys, 100);
-		//	ImPlot::EndPlot();
-		//}
+		if (ImPlot::BeginPlot("Phase Plot"))
+		{
+			ImPlot::SetupAxes("Frequency (Hz)", "Phase");
+			ImPlot::SetupAxesLimits(static_cast<float>(r.min_freq) - ((static_cast<float>(r.max_freq) - static_cast<float>(r.min_freq)) * 0.1),
+				static_cast<float>(r.max_freq) + ((static_cast<float>(r.max_freq) - static_cast<float>(r.min_freq)) * 0.1),
+				static_cast<float>(r.min_phase) - ((static_cast<float>(r.max_phase) - static_cast<float>(r.min_phase)) * 0.1),
+				static_cast<float>(r.max_phase) + ((static_cast<float>(r.max_phase) - static_cast<float>(r.min_phase)) * 0.1));
 
-		ImPlot::PlotLine("Amplitude Plot", freq_xValues.data(), ampl_yValues.data(), static_cast<int>(freq_xValues.size()));
+			ImPlot::SetNextLineStyle(ImVec4(0, 0, 1, 1), 2.0f); // Set line color to blue and width to 2.0f
 
-		// Plot the phase response
-		ImPlot::PlotLine("Phase Plot", freq_xValues.data(), phase_yValues.data(), static_cast<int>(freq_xValues.size()));
+			// Plot the amplitude
+			ImPlot::PlotLine("Phase", freq_xValues.data(), phase_yValues.data(), static_cast<int>(freq_xValues.size()));
+			ImPlot::EndPlot();
+		}
+
+		ImPlot::DestroyContext();
 	}
 
 

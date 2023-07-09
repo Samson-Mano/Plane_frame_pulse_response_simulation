@@ -802,6 +802,9 @@ void geom_store::paint_geometry()
 
 	// Frequency Response Analysis
 	paint_freq_analysis();
+
+	// Pulse Response Analysis
+	paint_pulse_analysis();
 }
 
 void geom_store::paint_model()
@@ -985,7 +988,7 @@ void geom_store::paint_modal_analysis()
 
 void geom_store::paint_freq_analysis()
 {
-	// Check closing sequence for modal analysis window
+	// Check closing sequence for Frequency analysis window
 	if (sol_freq_window->execute_close == true)
 	{
 		// Execute the close sequence
@@ -1000,7 +1003,7 @@ void geom_store::paint_freq_analysis()
 			sol_freq_window->selected_resp = 0;
 		}
 
-		sol_modal_window->execute_close = false;
+		sol_freq_window->execute_close = false;
 	}
 
 	// Check whether the modal analysis solver window is open or not
@@ -1020,6 +1023,11 @@ void geom_store::paint_freq_analysis()
 		}
 		else
 		{
+			// Modal analysis Results
+			sol_freq_window->number_of_modes = static_cast<int>(modal_results.eigen_values.size());
+			sol_freq_window->modal_first_frequency = std::sqrt(modal_results.eigen_values.at(0))/ (2.0 * m_pi); // std::sqrt(modal_results.eigen_values[i]) / (2.0 * m_pi);
+			sol_freq_window->modal_end_frequency = std::sqrt(modal_results.eigen_values.at(sol_freq_window->number_of_modes - 1))/ (2.0 * m_pi);
+
 			// Modal analysis is complete (check whether frequency response analysis is complete or not)
 			if (is_freq_analysis_complete == true)
 			{
@@ -1068,6 +1076,83 @@ void geom_store::paint_freq_analysis()
 		}
 
 		sol_freq_window->execute_freq_analysis = false;
+	}
+}
+
+void geom_store::paint_pulse_analysis()
+{
+	// Check closing sequence for Pulse response analysis window
+	if (sol_pulse_window->execute_close == true)
+	{
+		// Execute the close sequence
+		if (is_pulse_analysis_complete == true)
+		{
+			// Pulse response analysis is complete
+			
+		}
+
+		sol_pulse_window->execute_close = false;
+	}
+
+	// Check whether the modal analysis solver window is open or not
+	if (sol_pulse_window->is_show_window == false)
+	{
+		return;
+	}
+
+
+	if (sol_pulse_window->execute_open == true)
+	{
+		// Execute the open sequence
+		if (is_modal_analysis_complete == false)
+		{
+			// Exit the window (when modal analysis is not complete)
+			sol_pulse_window->is_show_window = false;
+		}
+		else
+		{
+			// Modal analysis Results
+			sol_pulse_window->number_of_modes = static_cast<int>(modal_results.eigen_values.size());
+			sol_pulse_window->modal_first_frequency = std::sqrt(modal_results.eigen_values.at(0)) / (2.0 * m_pi); // std::sqrt(modal_results.eigen_values[i]) / (2.0 * m_pi);
+			sol_pulse_window->modal_end_frequency = std::sqrt(modal_results.eigen_values.at(sol_freq_window->number_of_modes - 1)) / (2.0 * m_pi);
+
+			// Modal analysis is complete (check whether frequency response analysis is complete or not)
+			if (is_pulse_analysis_complete == true)
+			{
+				// Pulse response analysis is complete
+
+			}
+
+		}
+		sol_pulse_window->execute_open = false;
+	}
+
+	if (sol_pulse_window->execute_pulse_analysis == true)
+	{
+		// Execute the Frequency response Analysis
+		freq_analysis_solver fq_solver;
+		fq_solver.freq_analysis_start(model_nodes,
+			model_lineelements,
+			model_constarints,
+			model_loads,
+			model_ptmass,
+			mat_window->material_list,
+			sol_modal_window->is_include_consistent_mass_matrix,
+			modal_results,
+			sol_freq_window->frequency_start_val,
+			sol_freq_window->frequency_end_val,
+			sol_freq_window->frequency_interval,
+			sol_freq_window->damping_ratio,
+			freq_response_result,
+			is_freq_analysis_complete);
+
+		// Check whether the modal analysis is complete or not
+		if (is_pulse_analysis_complete == true)
+		{
+			// Pulse response analysis is complete
+
+		}
+		sol_pulse_window->execute_pulse_analysis = false;
 	}
 }
 
