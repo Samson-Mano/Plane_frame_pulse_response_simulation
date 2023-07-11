@@ -34,7 +34,7 @@ void frequency_response_window::render_window()
 
 	ImGui::Spacing();
 	// Frequency range
-	// Text for load start time
+	// Text for load start frequency
 	//_________________________________________________________________________________________
 	// Input box to give input via text
 	static bool frequencystart_input_mode = false;

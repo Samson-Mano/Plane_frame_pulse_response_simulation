@@ -162,6 +162,9 @@
     <ClCompile Include="src\fe_solver\pulse_analysis_solver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\geometry_store\pulse_result_objects\pulse_analysis_result_store.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\dlls\freetype.dll" />
@@ -357,6 +360,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\fe_solver\pulse_analysis_solver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\geometry_store\pulse_result_objects\pulse_analysis_result_store.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

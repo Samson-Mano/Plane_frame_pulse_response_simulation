@@ -15,8 +15,7 @@ public:
 	bool execute_close = false; // Closing of solution window event flag
 
 	// Inputs for response calculation
-	double time_start_val = 0.0;
-	double time_end_val = 10.0;
+	double total_simulation_time = 10.0;
 	double time_interval = 0.1;
 	
 	// Modal analysis Results
@@ -37,7 +36,6 @@ public:
 	double animation_speed = 10.0;
 	double normailzed_defomation_scale = 0.0;
 	double deformation_scale = 0.0;
-
 
 
 	pulse_response_window();

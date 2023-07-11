@@ -34,6 +34,8 @@
 
 // FE Results  Result Objects
 #include "freq_result_objects/freq_analysis_result_store.h"
+#include "pulse_result_objects/pulse_analysis_result_store.h"
+
 
 class geom_store
 {
@@ -90,6 +92,9 @@ private:
 
 	// Frequency Response results
 	freq_analysis_result_store freq_response_result;
+
+	// Pulse analysis results
+	pulse_analysis_result_store pulse_response_result;
 
 	// View options ptr and Material window ptr
 	options_window* op_window = nullptr;

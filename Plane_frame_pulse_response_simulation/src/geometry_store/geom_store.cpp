@@ -1114,7 +1114,7 @@ void geom_store::paint_pulse_analysis()
 			// Modal analysis Results
 			sol_pulse_window->number_of_modes = static_cast<int>(modal_results.eigen_values.size());
 			sol_pulse_window->modal_first_frequency = std::sqrt(modal_results.eigen_values.at(0)) / (2.0 * m_pi); // std::sqrt(modal_results.eigen_values[i]) / (2.0 * m_pi);
-			sol_pulse_window->modal_end_frequency = std::sqrt(modal_results.eigen_values.at(sol_freq_window->number_of_modes - 1)) / (2.0 * m_pi);
+			sol_pulse_window->modal_end_frequency = std::sqrt(modal_results.eigen_values.at(sol_pulse_window->number_of_modes - 1)) / (2.0 * m_pi);
 
 			// Modal analysis is complete (check whether frequency response analysis is complete or not)
 			if (is_pulse_analysis_complete == true)

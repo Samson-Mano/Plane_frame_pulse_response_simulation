@@ -111,6 +111,7 @@
     <ClCompile Include="src\geometry_store\modal_result_objects\modal_analysis_result_store.cpp" />
     <ClCompile Include="src\geometry_store\modal_result_objects\modal_elementline_store.cpp" />
     <ClCompile Include="src\geometry_store\modal_result_objects\modal_nodes_list_store.cpp" />
+    <ClCompile Include="src\geometry_store\pulse_result_objects\pulse_analysis_result_store.cpp" />
     <ClCompile Include="src\ImGui\imgui.cpp" />
     <ClCompile Include="src\ImGui\imgui_draw.cpp" />
     <ClCompile Include="src\ImGui\imgui_impl_glfw.cpp" />
@@ -190,6 +191,7 @@
     <ClInclude Include="src\geometry_store\modal_result_objects\modal_analysis_result_store.h" />
     <ClInclude Include="src\geometry_store\modal_result_objects\modal_elementline_store.h" />
     <ClInclude Include="src\geometry_store\modal_result_objects\modal_nodes_list_store.h" />
+    <ClInclude Include="src\geometry_store\pulse_result_objects\pulse_analysis_result_store.h" />
     <ClInclude Include="src\ImGui\imconfig.h" />
     <ClInclude Include="src\ImGui\imgui.h" />
     <ClInclude Include="src\ImGui\imgui_impl_glfw.h" />
