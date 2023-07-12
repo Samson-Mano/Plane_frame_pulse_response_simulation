@@ -167,12 +167,12 @@ void pulse_analysis_solver::pulse_analysis_start(const nodes_list_store& model_n
 		load_data ld = ld_m.second; // get the load data
 
 		pulse_loads[k].load_id = k;
-		create_pulse_load_matrices(pulse_loads[k], 
-			ld, 
-			model_lineelements, 
-			globalDOFMatrix, 
-			reduced_eigenVectorsMatrix, 
-			numDOF, 
+		create_pulse_load_matrices(pulse_loads[k],
+			ld,
+			model_lineelements,
+			globalDOFMatrix,
+			reduced_eigenVectorsMatrix,
+			numDOF,
 			reducedDOF);
 
 		k++; // iterate load id
@@ -199,43 +199,85 @@ void pulse_analysis_solver::pulse_analysis_start(const nodes_list_store& model_n
 
 	//____________________________________________________________________________________________________________________
 	// Pulse Response
+	std::unordered_map<int, pulse_node_result> node_results;
+	int r_id = 0;
 
 	for (double time_t = 0.0; time_t <= total_simulation_time; time_t = time_t + time_interval)
 	{
 
+		Eigen::MatrixXd displ_ampl_RespMatrix_reduced_b4eig_trans(reducedDOF, 1);
+		displ_ampl_RespMatrix_reduced_b4eig_trans.setZero();
 
-		// get all the loads
 		for (int i = 0; i < reducedDOF; i++)
 		{
-			//// get the mode shape at i 
-			//Eigen::VectorXd mode_shape_i(reducedDOF);
-			//mode_shape_i = reduced_eigenVectorsMatrix.col(i);
 			double total_displ_resp = 0.0;
 
-			for (int j = 0; i < reducedDOF; i++)
+			// get all the loads
+			for (auto& pulse_load : pulse_loads)
 			{
-				
-
 				// Go through all the force
+				double at_force_displ_resp = 0.0;
 
+				get_steady_state_pulse_soln(at_force_displ_resp,
+					time_t,
+					modalMass(i),
+					modalStiff(i),
+					pulse_load.modal_reducedLoadamplMatrix(i, 0),
+					pulse_load.load_start_time,
+					pulse_load.load_end_time);
 
-
-
-
-
+				total_displ_resp = total_displ_resp + at_force_displ_resp;
 			}
+
+			// Add to the modal displ matrix
+			displ_ampl_RespMatrix_reduced_b4eig_trans.coeffRef(i, 0) = total_displ_resp;
 		}
 
 		// Apply modal de-transformation
+		Eigen::MatrixXd displ_ampl_RespMatrix_reduced(reducedDOF, 1);
+		displ_ampl_RespMatrix_reduced.setZero();
 
+		displ_ampl_RespMatrix_reduced = reduced_eigenVectorsMatrix * displ_ampl_RespMatrix_reduced_b4eig_trans;
 
 		// Extend reduced modal displ matrix to global modal displ matrix
+		Eigen::MatrixXd displ_ampl_RespMatrix_b4supp_trans(numDOF, 1);
+		displ_ampl_RespMatrix_b4supp_trans.setZero();
 
+		get_global_resp_matrix(displ_ampl_RespMatrix_b4supp_trans,
+			displ_ampl_RespMatrix_reduced, globalDOFMatrix,
+			numDOF,
+			reducedDOF);
 
 		// Apply support transformation
+		Eigen::MatrixXd displ_ampl_RespMatrix(numDOF, 1);
+		displ_ampl_RespMatrix.setZero();
 
+		displ_ampl_RespMatrix = globalSupportInclinationMatrix * displ_ampl_RespMatrix_b4supp_trans;
+
+		// Store the results to node results
+		for (auto& nd_m : model_nodes.nodeMap)
+		{
+			// get the node id
+			int nd_id = nd_m.second.node_id;
+			int nd_index = nodeid_map[nd_id];
+
+			// Node displacement response
+			glm::vec3 node_displ = glm::vec3(displ_ampl_RespMatrix((nd_index * 3) + 0, 0),
+				displ_ampl_RespMatrix((nd_index * 3) + 1, 0),
+				displ_ampl_RespMatrix((nd_index * 3) + 2, 0));
+
+			// Add the index
+			node_results[nd_id].index.push_back(r_id);
+			// Add the time val
+			node_results[nd_id].time_val.push_back(time_t);
+			// Add the displacement
+			node_results[nd_id].node_pulse_displ.push_back(node_displ);
+		}
+
+		r_id++;
 	}
 
+	// Map the results
 
 
 }
@@ -807,7 +849,7 @@ void pulse_analysis_solver::create_pulse_load_matrices(pulse_load_data& pulse_lo
 	// Create the global load amplitude matrix
 	// Extract the line in which the load is applied
 	elementline_store ln = model_lineelements.elementlineMap.at(ld.line_id);
-	
+
 	// Get the Matrix row ID
 	int sn_id = nodeid_map[ln.startNode->node_id]; // get the ordered map of the start node ID
 	int en_id = nodeid_map[ln.endNode->node_id]; // get the ordered map of the end node ID
@@ -920,6 +962,32 @@ void pulse_analysis_solver::get_element_load_matrix(Eigen::MatrixXd& elementLoad
 
 }
 
+void pulse_analysis_solver::get_global_resp_matrix(Eigen::MatrixXd& displ_ampl_RespMatrix_b4supp_trans,
+	const Eigen::MatrixXd& displ_ampl_RespMatrix_reduced,
+	const Eigen::MatrixXd& globalDOFMatrix,
+	const int& numDOF,
+	const int& reducedDOF)
+{
+	// Get global response matrix from the reduced matrices
+	// Loop throug the Degree of freedom of indices
+	int r = 0;
+
+	// Loop throug the Degree of freedom of indices
+	for (int i = 0; i < numDOF; i++)
+	{
+		if (globalDOFMatrix(i, 0) == 0)
+		{
+			// constrained row index, so skip
+			continue;
+		}
+		else
+		{
+			// Get the reduced matrices
+			displ_ampl_RespMatrix_b4supp_trans.coeffRef(i, 0) = displ_ampl_RespMatrix_reduced(r, 0);
+			r++;
+		}
+	}
+}
 
 void pulse_analysis_solver::get_steady_state_pulse_soln(double& steady_state_displ_resp,
 	const double& time_t,
@@ -959,5 +1027,11 @@ void pulse_analysis_solver::get_steady_state_pulse_soln(double& steady_state_dis
 			(std::sin(modal_omega_n * (time_t - modal_force_starttime)) -
 				(modal_omega_n * (time_t - modal_force_starttime)) * std::cos(modal_omega_n * (time_t - modal_force_starttime)));
 	}
+}
+
+void pulse_analysis_solver::map_pulse_analysis_results()
+{
+	// Map the pulse analysis results
+
 
 }

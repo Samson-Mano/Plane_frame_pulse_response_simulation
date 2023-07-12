@@ -19,7 +19,7 @@ void modal_nodes_list_store::init(geom_parameters* geom_param_ptr)
 	modal_node_points.init(geom_param_ptr);
 	modal_node_vector_labels.init(geom_param_ptr);
 
-	// Clear the nodes
+	// Clear the results
 	node_count = 0;
 	modal_nodeMap.clear();
 	max_node_displ.clear();

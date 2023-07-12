@@ -14,6 +14,7 @@
 
 // FE Results Freq Analysis
 #include "../geometry_store/pulse_result_objects/pulse_analysis_result_store.h"
+#include "../geometry_store/pulse_result_objects/pulse_nodes_list_store.h"
 
 #pragma warning(push)
 #pragma warning (disable : 26451)
@@ -145,6 +146,12 @@ private:
 		const elementline_store& ln,
 		const load_data& ld);
 
+	void get_global_resp_matrix(Eigen::MatrixXd& displ_ampl_RespMatrix_b4supp_trans,
+		const Eigen::MatrixXd& displ_ampl_RespMatrix_reduced,
+		const Eigen::MatrixXd& globalDOFMatrix,
+		const int& numDOF,
+		const int& reducedDOF);
+
 	void get_steady_state_pulse_soln(double& steady_state_displ_resp,
 		const double& time_t,
 		const double& modal_mass,
@@ -153,4 +160,5 @@ private:
 		const double& modal_force_starttime,
 		const double& modal_force_endtime);
 
+	void map_pulse_analysis_results();
 };
