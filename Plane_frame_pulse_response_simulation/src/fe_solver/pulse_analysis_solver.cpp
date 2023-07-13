@@ -22,6 +22,8 @@ void pulse_analysis_solver::pulse_analysis_start(const nodes_list_store& model_n
 	const double time_interval,
 	const double damping_ratio,
 	pulse_analysis_result_store& pulse_response_result,
+	pulse_nodes_list_store& pulse_result_nodes,
+	pulse_elementline_list_store& pulse_result_lineelements,
 	bool& is_pulse_analysis_complete)
 {
 	// Main solver call
@@ -94,13 +96,6 @@ void pulse_analysis_solver::pulse_analysis_start(const nodes_list_store& model_n
 
 	globalMassMatrix = globalPointMassMatrix + globalConsistentMassMatrix;
 
-	////____________________________________________________________________________________________________________________
-	//// Global Load Matrix
-	//Eigen::MatrixXd globalLoadMatrix(numDOF, 1);
-	//globalLoadMatrix.setZero();
-
-	//get_global_load_matrix(globalLoadMatrix, model_lineelements, model_loads, output_file);
-
 	//____________________________________________________________________________________________________________________
 	// Global DOF Mass Matrix
 	Eigen::MatrixXd globalDOFMatrix(numDOF, 1);
@@ -123,10 +118,6 @@ void pulse_analysis_solver::pulse_analysis_start(const nodes_list_store& model_n
 	// Reduced Global Mass matrix
 	Eigen::MatrixXd reduced_globalMassMatrix(reducedDOF, reducedDOF);
 	reduced_globalMassMatrix.setZero();
-
-	//// Reduced Load matrix
-	//Eigen::MatrixXd reduced_globalLoadMatrix(reducedDOF, 1);
-	//reduced_globalLoadMatrix.setZero();
 
 	get_reduced_global_matrices(reduced_globalStiffnessMatrix,
 		reduced_globalMassMatrix,
@@ -278,7 +269,16 @@ void pulse_analysis_solver::pulse_analysis_start(const nodes_list_store& model_n
 	}
 
 	// Map the results
+	map_pulse_analysis_results(pulse_response_result,
+		pulse_result_nodes,
+		pulse_result_lineelements,
+		r_id,
+		model_nodes,
+		model_lineelements,
+		node_results);
 
+	// Analysis complete
+	is_pulse_analysis_complete = true;
 
 }
 
@@ -1029,9 +1029,40 @@ void pulse_analysis_solver::get_steady_state_pulse_soln(double& steady_state_dis
 	}
 }
 
-void pulse_analysis_solver::map_pulse_analysis_results()
+void pulse_analysis_solver::map_pulse_analysis_results(pulse_analysis_result_store& pulse_response_result,
+	pulse_nodes_list_store& pulse_result_nodes,
+	pulse_elementline_list_store& pulse_result_lineelements,
+	const int& number_of_time_steps,
+	const nodes_list_store& model_nodes,
+	const elementline_list_store& model_lineelements,
+	const std::unordered_map<int, pulse_node_result>& node_results)
 {
 	// Map the pulse analysis results
+	// map the node results
+	pulse_result_nodes.clear_data();
 
+	for (auto& nd_m : model_nodes.nodeMap)
+	{
+		// Extract the model node
+		node_store nd = nd_m.second;
 
+		// Add to the pulse node results store
+		pulse_result_nodes.add_result_node(nd.node_id, nd.node_pt, node_results.at(nd.node_id), number_of_time_steps);
+	}
+
+	// map the line results
+	pulse_result_lineelements.clear_data();
+
+	for (auto& ln_m : model_lineelements.elementlineMap)
+	{
+		// Extract the model lines
+		elementline_store ln = ln_m.second;
+
+		// Extract the pulse node store -> start node and end node
+		pulse_node_store* startNode = &pulse_result_nodes.pulse_nodeMap[ln.startNode->node_id];
+		pulse_node_store* endNode = &pulse_result_nodes.pulse_nodeMap[ln.endNode->node_id];
+
+		// Add to the pulse element results store
+		pulse_result_lineelements.add_pulse_elementline(ln.line_id, startNode, endNode);
+	}
 }

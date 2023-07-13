@@ -17,6 +17,7 @@ public:
 	// Inputs for response calculation
 	double total_simulation_time = 10.0;
 	double time_interval = 0.1;
+	double damping_ratio = 0.01;
 	
 	// Modal analysis Results
 	double modal_first_frequency = 0.0;

@@ -1130,8 +1130,8 @@ void geom_store::paint_pulse_analysis()
 	if (sol_pulse_window->execute_pulse_analysis == true)
 	{
 		// Execute the Frequency response Analysis
-		freq_analysis_solver fq_solver;
-		fq_solver.freq_analysis_start(model_nodes,
+		pulse_analysis_solver pulse_solver;
+		pulse_solver.pulse_analysis_start(model_nodes,
 			model_lineelements,
 			model_constarints,
 			model_loads,
@@ -1139,12 +1139,13 @@ void geom_store::paint_pulse_analysis()
 			mat_window->material_list,
 			sol_modal_window->is_include_consistent_mass_matrix,
 			modal_results,
-			sol_freq_window->frequency_start_val,
-			sol_freq_window->frequency_end_val,
-			sol_freq_window->frequency_interval,
-			sol_freq_window->damping_ratio,
-			freq_response_result,
-			is_freq_analysis_complete);
+			sol_pulse_window->total_simulation_time,
+			sol_pulse_window->time_val,
+			sol_pulse_window->damping_ratio,
+			pulse_response_result,
+			pulse_result_nodes,
+			pulse_result_lineelements,
+			is_pulse_analysis_complete);
 
 		// Check whether the modal analysis is complete or not
 		if (is_pulse_analysis_complete == true)

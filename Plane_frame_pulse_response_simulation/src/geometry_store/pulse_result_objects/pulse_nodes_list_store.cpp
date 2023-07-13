@@ -30,7 +30,19 @@ void pulse_nodes_list_store::clear_data()
 	max_node_displ = 0.0; // Maximum nodal displacement
 }
 
+void pulse_nodes_list_store::add_result_node(int& node_id, glm::vec2& node_pt, pulse_node_result node_pulse_result, const int& number_of_time_steps)
+{
+	// Add the result nodes
+	pulse_node_store temp_pulse_result;
 
+	temp_pulse_result.node_id = node_id; // Add the node ID
+	temp_pulse_result.node_pt = node_pt; // Add the node point
+	temp_pulse_result.node_pulse_result = node_pulse_result; // Node point results
+	temp_pulse_result.number_of_timesteps = number_of_time_steps; // Number of time steps
+
+	// Add to the pulse nodeMap
+	pulse_nodeMap.insert({ 0,temp_pulse_result });
+}
 
 
 

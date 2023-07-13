@@ -2,7 +2,6 @@
 #include "pulse_nodes_list_store.h"
 #include "../geometry_objects/line_list_store.h"
 
-
 struct pulse_line_points
 {
 	int split_line_id = 0; // line id of the individual hermitian interpolation line 
@@ -25,19 +24,24 @@ struct pulse_elementline_store
 	std::vector<pulse_line_points> hermite_line_data;
 };
 
-class pulse_elementline_store
+class pulse_elementline_list_store
 {
 public:
 	const int interpolation_count = 20;
 	unsigned int pulse_elementline_count = 0;
 	std::unordered_map<int, pulse_elementline_store> pulse_elementlineMap; // Create an unordered_map to store lines with ID as key
 
-	pulse_elementline_store();
-	~pulse_elementline_store();
+	pulse_elementline_list_store();
+	~pulse_elementline_list_store();
 	void init(geom_parameters* geom_param_ptr);
 	void clear_data();
 	void add_pulse_elementline(int& line_id, pulse_node_store* startNode, pulse_node_store* endNode);
+	std::vector<pulse_line_points> set_line_hermite_interpolation(const int& interpolation_count, pulse_node_store* startNode, pulse_node_store* endNode);
+	double linear_bar_element_interpolation(double q1, double q2, double s);
+	double hermite_beam_element_interpolation(double v1, double theta1, double v2, double theta2, double s);
 
 private:
+	geom_parameters* geom_param_ptr = nullptr;
 
+	glm::vec3 getContourColor(float value);
 };

@@ -19,6 +19,7 @@
 // Solver
 #include "../fe_solver/modal_analysis_solver.h"
 #include "../fe_solver/freq_analysis_solver.h"
+#include "../fe_solver/pulse_analysis_solver.h"
 
 // FE Objects
 #include "fe_objects/nodes_list_store.h"
@@ -32,10 +33,11 @@
 #include "modal_result_objects/modal_nodes_list_store.h"
 #include "modal_result_objects/modal_elementline_store.h"
 
-// FE Results  Result Objects
+// FE Results Result Objects Frequency response & pulse response
 #include "freq_result_objects/freq_analysis_result_store.h"
 #include "pulse_result_objects/pulse_analysis_result_store.h"
-
+#include "pulse_result_objects/pulse_elementline_store.h"
+#include "pulse_result_objects/pulse_nodes_list_store.h"
 
 class geom_store
 {
@@ -95,6 +97,8 @@ private:
 
 	// Pulse analysis results
 	pulse_analysis_result_store pulse_response_result;
+	pulse_nodes_list_store pulse_result_nodes;
+	pulse_elementline_list_store pulse_result_lineelements;
 
 	// View options ptr and Material window ptr
 	options_window* op_window = nullptr;

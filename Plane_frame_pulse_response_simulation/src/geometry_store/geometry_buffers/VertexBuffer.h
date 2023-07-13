@@ -9,6 +9,7 @@ public:
 	VertexBuffer();
 	~VertexBuffer();
 	void createVertexBuffer(const float* vertex_data, unsigned int vertex_size);
+	void createDynamicVertexBuffer(const float* vertex_data, unsigned int vertex_size);
 	void Bind() const;
 	void UnBind() const;
 private:

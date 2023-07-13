@@ -15,6 +15,7 @@
 // FE Results Freq Analysis
 #include "../geometry_store/pulse_result_objects/pulse_analysis_result_store.h"
 #include "../geometry_store/pulse_result_objects/pulse_nodes_list_store.h"
+#include "../geometry_store/pulse_result_objects/pulse_elementline_store.h"
 
 #pragma warning(push)
 #pragma warning (disable : 26451)
@@ -69,6 +70,8 @@ public:
 		const double time_interval,
 		const double damping_ratio,
 		pulse_analysis_result_store& pulse_response_result,
+		pulse_nodes_list_store& pulse_result_nodes,
+		pulse_elementline_list_store& pulse_result_lineelements,
 		bool& is_pulse_analysis_complete);
 private:
 	std::unordered_map<int, int> nodeid_map;
@@ -160,5 +163,11 @@ private:
 		const double& modal_force_starttime,
 		const double& modal_force_endtime);
 
-	void map_pulse_analysis_results();
+	void map_pulse_analysis_results(pulse_analysis_result_store& pulse_response_result,
+		pulse_nodes_list_store& pulse_result_nodes,
+		pulse_elementline_list_store& pulse_result_lineelements,
+		const int& number_of_time_steps,
+		const nodes_list_store& model_nodes,
+		const elementline_list_store& model_lineelements,
+		const std::unordered_map<int, pulse_node_result>& node_results);
 };

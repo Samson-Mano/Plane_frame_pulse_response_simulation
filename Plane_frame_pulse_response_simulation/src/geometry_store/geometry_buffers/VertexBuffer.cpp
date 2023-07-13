@@ -19,6 +19,14 @@ void VertexBuffer::createVertexBuffer(const float* vertex_data, unsigned int ver
 	glBufferData(GL_ARRAY_BUFFER, vertex_size, vertex_data, GL_STATIC_DRAW);
 }
 
+void VertexBuffer::createDynamicVertexBuffer(const float* vertex_data, unsigned int vertex_size)
+{
+	// Main constructor to create Dynamic vertex buffer
+	glGenBuffers(1, &vb_id);
+	glBindBuffer(GL_ARRAY_BUFFER, vb_id);
+	glBufferData(GL_ARRAY_BUFFER, vertex_size, nullptr, GL_DYNAMIC_DRAW);
+}
+
 void VertexBuffer::Bind() const
 {
 	// Bind this vertex buffer with its id

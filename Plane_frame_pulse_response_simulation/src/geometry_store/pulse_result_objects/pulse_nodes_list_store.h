@@ -20,6 +20,7 @@ struct pulse_node_store
 
 	// Pulse results (index, time, (x, y, rot_xy))
 	pulse_node_result node_pulse_result;
+	int number_of_timesteps = 0;
 };
 
 class pulse_nodes_list_store
@@ -33,7 +34,8 @@ public:
 	~pulse_nodes_list_store();
 	void init(geom_parameters* geom_param_ptr);
 	void clear_data();
-	void add_result_node(int& node_id, glm::vec2& node_pt, pulse_node_result node_pulse_result);
+	void add_result_node(int& node_id, glm::vec2& node_pt, pulse_node_result node_pulse_result,const int& number_of_time_steps);
+
 private:
 	geom_parameters* geom_param_ptr = nullptr;
 	point_list_store modal_node_points;
