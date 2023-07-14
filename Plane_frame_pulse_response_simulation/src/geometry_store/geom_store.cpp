@@ -571,6 +571,9 @@ void geom_store::update_model_matrix()
 	modal_result_lineelements.update_geometry_matrices(true, false, false, false, false);
 	modal_result_nodes.update_geometry_matrices(true, false, false, false, false);
 
+	// Update the pulse analysis result matrix
+	pulse_result_lineelements.update_geometry_matrices(true, false, false, false, false);
+	pulse_result_nodes.update_geometry_matrices(true, false, false, false, false);
 }
 
 void geom_store::update_model_zoomfit()
@@ -595,7 +598,9 @@ void geom_store::update_model_zoomfit()
 	modal_result_lineelements.update_geometry_matrices(false, true, true, false, false);
 	modal_result_nodes.update_geometry_matrices(false, true, true, false, false);
 
-
+	// Update the pulse analysis result matrix
+	pulse_result_lineelements.update_geometry_matrices(false, true, true, false, false);
+	pulse_result_nodes.update_geometry_matrices(false, true, true, false, false);
 }
 
 void geom_store::update_model_pan(glm::vec2& transl)
@@ -619,6 +624,10 @@ void geom_store::update_model_pan(glm::vec2& transl)
 	// Update the modal analysis result matrix
 	modal_result_lineelements.update_geometry_matrices(false, true, false, false, false);
 	modal_result_nodes.update_geometry_matrices(false, true, false, false, false);
+
+	// Update the pulse analysis result matrix
+	pulse_result_lineelements.update_geometry_matrices(false, true, false, false, false);
+	pulse_result_nodes.update_geometry_matrices(false, true, false, false, false);
 }
 
 void geom_store::update_model_zoom(double& z_scale)
@@ -640,6 +649,9 @@ void geom_store::update_model_zoom(double& z_scale)
 	modal_result_lineelements.update_geometry_matrices(false, false, true, false, false);
 	modal_result_nodes.update_geometry_matrices(false, false, true, false, false);
 
+	// Update the pulse analysis result matrix
+	pulse_result_lineelements.update_geometry_matrices(false, false, true, false, false);
+	pulse_result_nodes.update_geometry_matrices(false, false, true, false, false);
 }
 
 void geom_store::update_model_transperency(bool is_transparent)
@@ -1088,7 +1100,7 @@ void geom_store::paint_pulse_analysis()
 		if (is_pulse_analysis_complete == true)
 		{
 			// Pulse response analysis is complete
-			
+			update_model_transperency(false);
 		}
 
 		sol_pulse_window->execute_close = false;
@@ -1098,6 +1110,25 @@ void geom_store::paint_pulse_analysis()
 	if (sol_pulse_window->is_show_window == false)
 	{
 		return;
+	}
+
+	// Paint the pulse analysis result
+	if (is_pulse_analysis_complete == true)
+	{
+		// Update the deflection scale
+		geom_param.normalized_defl_scale = std::abs(sol_modal_window->normailzed_defomation_scale);
+		geom_param.defl_scale = sol_modal_window->deformation_scale;
+
+		// Update the deflection scale
+		pulse_result_lineelements.update_geometry_matrices(false, false, false, false, true);
+		pulse_result_nodes.update_geometry_matrices(false, false, false, false, true);
+		// ______________________________________________________________________________________
+
+		// Paint the pulse lines
+		pulse_result_lineelements.paint_pulse_elementlines();
+
+		// Paint the pulse nodes
+		pulse_result_nodes.paint_pulse_nodes();
 	}
 
 
@@ -1120,7 +1151,7 @@ void geom_store::paint_pulse_analysis()
 			if (is_pulse_analysis_complete == true)
 			{
 				// Pulse response analysis is complete
-
+				update_model_transperency(true);
 			}
 
 		}
@@ -1151,7 +1182,7 @@ void geom_store::paint_pulse_analysis()
 		if (is_pulse_analysis_complete == true)
 		{
 			// Pulse response analysis is complete
-
+			update_model_transperency(true);
 		}
 		sol_pulse_window->execute_pulse_analysis = false;
 	}

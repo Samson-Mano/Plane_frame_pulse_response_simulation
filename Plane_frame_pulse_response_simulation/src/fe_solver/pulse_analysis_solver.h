@@ -30,15 +30,6 @@
 typedef Eigen::SparseMatrix<double> SparseMatrix;
 #pragma warning(pop)
 
-struct pulse_load_data1
-{
-	int row_id = 0;
-	double load_ampl = 0.0;
-	double load_start_time = 0.0;
-	double load_end_time = 0.0;
-};
-
-
 struct pulse_load_data
 {
 	double load_id;

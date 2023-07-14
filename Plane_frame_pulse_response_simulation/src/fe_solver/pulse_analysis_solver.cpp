@@ -277,6 +277,12 @@ void pulse_analysis_solver::pulse_analysis_start(const nodes_list_store& model_n
 		model_lineelements,
 		node_results);
 
+	if (pulse_result_lineelements.max_line_displ == 0)
+	{
+		// Analysis failed 
+		return;
+	}
+
 	// Analysis complete
 	is_pulse_analysis_complete = true;
 
@@ -1065,4 +1071,41 @@ void pulse_analysis_solver::map_pulse_analysis_results(pulse_analysis_result_sto
 		// Add to the pulse element results store
 		pulse_result_lineelements.add_pulse_elementline(ln.line_id, startNode, endNode);
 	}
+
+	//_________________________________________________________________________________________________________________
+	double maximum_displacement = 0.0;
+
+	for (auto& ln_m : pulse_result_lineelements.pulse_elementlineMap)
+	{
+		// get all the discretized line of every single line
+		for (auto& h_ln : ln_m.second.hermite_line_data)
+		{
+			//get all the two points
+			// Point 1 displacement
+			for (auto& pt1 : h_ln.pt1_modal_displ)
+			{
+				double displ1 = std::sqrt(std::pow(pt1.second.x, 2) + std::pow(pt1.second.y, 2));
+
+				if (displ1 > maximum_displacement)
+				{
+					maximum_displacement = displ1;
+				}
+			}
+
+			// Point 2 displacement
+			for (auto& pt2 : h_ln.pt2_modal_displ)
+			{
+				double displ2 = std::sqrt(std::pow(pt2.second.x, 2) + std::pow(pt2.second.y, 2));
+
+				if (displ2 > maximum_displacement)
+				{
+					maximum_displacement = displ2;
+				}
+			}
+		}
+	}
+
+	// Set the maximim displacement
+	pulse_result_nodes.max_node_displ = maximum_displacement;
+	pulse_result_lineelements.max_line_displ = maximum_displacement;
 }

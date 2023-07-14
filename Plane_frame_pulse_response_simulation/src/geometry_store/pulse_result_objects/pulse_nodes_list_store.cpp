@@ -16,6 +16,9 @@ void pulse_nodes_list_store::init(geom_parameters* geom_param_ptr)
 	// Set the geometry parameters
 	this->geom_param_ptr = geom_param_ptr;
 
+	// Set the geometry parameters for the points
+	pulse_node_points.init(geom_param_ptr);
+
 	// Clear the results
 	node_count = 0;
 	pulse_nodeMap.clear();
@@ -40,11 +43,62 @@ void pulse_nodes_list_store::add_result_node(int& node_id, glm::vec2& node_pt, p
 	temp_pulse_result.node_pulse_result = node_pulse_result; // Node point results
 	temp_pulse_result.number_of_timesteps = number_of_time_steps; // Number of time steps
 
+	// Check whether the node_id is already there
+	if (pulse_nodeMap.find(node_id) != pulse_nodeMap.end())
+	{
+		// Node ID already exist (do not add)
+		return;
+	}
+
 	// Add to the pulse nodeMap
-	pulse_nodeMap.insert({ 0,temp_pulse_result });
+	pulse_nodeMap.insert({ node_id,temp_pulse_result });
+	node_count++;
 }
 
+void pulse_nodes_list_store::set_buffer()
+{
+	//__________________________ Add the node points
+	for (auto& nd_m : pulse_nodeMap)
+	{
+		pulse_node_store nd = nd_m.second; // get the node data
 
+		std::vector<glm::vec2> point_offset; // point offset
+		std::vector<glm::vec3> point_color; // point color
+
+		for(int i = 0; i <static_cast<int>(nd.node_pulse_result.node_pulse_displ.size());i++)
+		{
+			// Create the node offset
+			glm::vec2 temp_point_offset = glm::vec2(nd.node_pulse_result.node_pulse_displ[i].x,
+				nd.node_pulse_result.node_pulse_displ[i].y);
+
+			point_offset.push_back(temp_point_offset);
+
+			// Create the node color vectors
+
+
+
+
+		}
+
+		// Add to the pulse points
+		pulse_node_points.add_point(nd.node_id, nd.node_pt, point_offset, point_color);
+	}
+
+	// Set buffer
+	pulse_node_points.set_buffer();
+}
+
+void pulse_nodes_list_store::paint_pulse_nodes()
+{
+	// Paint the points
+	pulse_node_points.paint_points();
+}
+
+void pulse_nodes_list_store::update_geometry_matrices(bool set_modelmatrix, bool set_pantranslation, bool set_zoomtranslation, bool set_transparency, bool set_deflscale)
+{
+	// Pulse node points update geometry 
+	pulse_node_points.update_opengl_uniforms(set_modelmatrix, set_pantranslation, set_zoomtranslation, set_transparency, set_deflscale);
+}
 
 glm::vec3 pulse_nodes_list_store::getContourColor(float value)
 {

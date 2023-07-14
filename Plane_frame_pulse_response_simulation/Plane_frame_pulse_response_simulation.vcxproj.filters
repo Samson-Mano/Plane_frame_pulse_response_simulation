@@ -171,6 +171,12 @@
     <ClCompile Include="src\geometry_store\pulse_result_objects\pulse_nodes_list_store.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\geometry_store\geometry_objects\dynamic_point_list_store.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\geometry_store\geometry_objects\dynamic_line_list_store.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\dlls\freetype.dll" />
@@ -375,6 +381,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\geometry_store\pulse_result_objects\pulse_nodes_list_store.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\geometry_store\geometry_objects\dynamic_point_list_store.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\geometry_store\geometry_objects\dynamic_line_list_store.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

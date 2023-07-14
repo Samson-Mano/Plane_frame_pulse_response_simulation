@@ -15,9 +15,13 @@ void pulse_elementline_list_store::init(geom_parameters* geom_param_ptr)
 	// Set the geometry parameters
 	this->geom_param_ptr = geom_param_ptr;
 
+	// Set the geometry parameters for the line
+	pulse_element_lines.init(geom_param_ptr);
+
 	// Clear the element lines
 	pulse_elementline_count = 0;
 	pulse_elementlineMap.clear();
+	pulse_element_lines.clear_lines();
 }
 
 void pulse_elementline_list_store::clear_data()
@@ -25,6 +29,7 @@ void pulse_elementline_list_store::clear_data()
 	// Clear the results
 	pulse_elementline_count = 0;
 	pulse_elementlineMap.clear();
+	pulse_element_lines.clear_lines();
 }
 
 void pulse_elementline_list_store::add_pulse_elementline(int& line_id, pulse_node_store* startNode, pulse_node_store* endNode)
@@ -44,6 +49,11 @@ void pulse_elementline_list_store::add_pulse_elementline(int& line_id, pulse_nod
 
 	//__________________________ Add Hermite interpolation for Beam Element
 	temp_line.hermite_line_data = set_line_hermite_interpolation(interpolation_count, startNode, endNode);
+
+	// Add to the pulse element line
+
+
+
 
 	// Insert to the lines
 	pulse_elementlineMap.insert({ line_id, temp_line });
@@ -167,4 +177,64 @@ double pulse_elementline_list_store::hermite_beam_element_interpolation(double v
 	double N4 = (-s * s) + (s * s * s);
 
 	return ((N1 * v1) + (N2 * theta1) + (N3 * v2) + (N4 * theta2));
+}
+
+void pulse_elementline_list_store::set_buffer(int selected_mode)
+{
+	// Set buffer
+	pulse_element_lines.set_buffer();
+}
+
+void pulse_elementline_list_store::paint_pulse_elementlines()
+{
+	// Paint the lines
+	pulse_element_lines.paint_lines();
+}
+
+void pulse_elementline_list_store::update_geometry_matrices(bool set_modelmatrix, bool set_pantranslation, bool set_zoomtranslation, bool set_transparency, bool set_deflscale)
+{
+	// Pulse line update geometry 
+	pulse_element_lines.update_opengl_uniforms(set_modelmatrix, set_pantranslation, set_zoomtranslation, set_transparency, set_deflscale);
+}
+
+glm::vec3 pulse_elementline_list_store::getContourColor(float value)
+{
+	// return the contour color based on the value (0 to 1)
+	glm::vec3 color;
+	float r, g, b;
+
+	// Rainbow color map
+	float hue = value * 5.0f; // Scale the value to the range of 0 to 5
+	float c = 1.0f;
+	float x = c * (1.0f - glm::abs(glm::mod(hue / 2.0f, 1.0f) - 1.0f));
+	float m = 0.0f;
+
+	if (hue >= 0 && hue < 1) {
+		r = c;
+		g = x;
+		b = m;
+	}
+	else if (hue >= 1 && hue < 2) {
+		r = x;
+		g = c;
+		b = m;
+	}
+	else if (hue >= 2 && hue < 3) {
+		r = m;
+		g = c;
+		b = x;
+	}
+	else if (hue >= 3 && hue < 4) {
+		r = m;
+		g = x;
+		b = c;
+	}
+	else {
+		r = x;
+		g = m;
+		b = c;
+	}
+
+	color = glm::vec3(r, g, b);
+	return color;
 }
