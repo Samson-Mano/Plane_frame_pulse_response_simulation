@@ -61,7 +61,8 @@ void dynamic_point_list_store::clear_points()
 	dyn_pointMap.clear();
 }
 
-void dynamic_point_list_store::update_opengl_uniforms(bool set_modelmatrix, bool set_pantranslation, bool set_zoomtranslation, bool set_transparency, bool set_deflscale)
+void dynamic_point_list_store::update_opengl_uniforms(bool set_modelmatrix, 
+	bool set_pantranslation, bool set_zoomtranslation, bool set_transparency, bool set_deflscale)
 {
 	if (set_modelmatrix == true)
 	{
@@ -98,7 +99,8 @@ void dynamic_point_list_store::update_opengl_uniforms(bool set_modelmatrix, bool
 	}
 }
 
-void dynamic_point_list_store::get_node_buffer(dynamic_point_store& pt, float* point_vertices, unsigned int& point_v_index, unsigned int* point_indices, unsigned int& point_i_index)
+void dynamic_point_list_store::get_node_buffer(dynamic_point_store& pt, float* point_vertices, unsigned int& point_v_index, 
+	unsigned int* point_indices, unsigned int& point_i_index)
 {
 
 

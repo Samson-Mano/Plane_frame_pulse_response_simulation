@@ -57,7 +57,10 @@ void pulse_nodes_list_store::add_result_node(int& node_id, glm::vec2& node_pt, p
 
 void pulse_nodes_list_store::set_buffer()
 {
-	//__________________________ Add the node points
+	// Clear the points
+	pulse_node_points.clear_points();
+
+	//__________________________ Add the Dynamic points
 	for (auto& nd_m : pulse_nodeMap)
 	{
 		pulse_node_store nd = nd_m.second; // get the node data
@@ -68,16 +71,23 @@ void pulse_nodes_list_store::set_buffer()
 		for(int i = 0; i <static_cast<int>(nd.node_pulse_result.node_pulse_displ.size());i++)
 		{
 			// Create the node offset
-			glm::vec2 temp_point_offset = glm::vec2(nd.node_pulse_result.node_pulse_displ[i].x,
-				nd.node_pulse_result.node_pulse_displ[i].y);
+			// Point displacement
+			double pt_displ = std::sqrt(std::pow(nd.node_pulse_result.node_pulse_displ[i].x, 2) +
+				std::pow(nd.node_pulse_result.node_pulse_displ[i].y, 2));
+
+			// Distance ratio
+			double dist_ratio = pt_displ / max_node_displ;
+
+			// Create the point offset
+			glm::vec2 temp_point_offset = glm::vec2(nd.node_pulse_result.node_pulse_displ[i].x * dist_ratio,
+				nd.node_pulse_result.node_pulse_displ[i].y * dist_ratio);
 
 			point_offset.push_back(temp_point_offset);
 
 			// Create the node color vectors
+			glm::vec3 temp_point_color = getContourColor(static_cast<float>(dist_ratio));
 
-
-
-
+			point_color.push_back(temp_point_color);
 		}
 
 		// Add to the pulse points

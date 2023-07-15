@@ -41,7 +41,7 @@ public:
 	double linear_bar_element_interpolation(double q1, double q2, double s);
 	double hermite_beam_element_interpolation(double v1, double theta1, double v2, double theta2, double s);
 
-	void set_buffer(int selected_mode);
+	void set_buffer();
 	void paint_pulse_elementlines();
 	void update_geometry_matrices(bool set_modelmatrix, bool set_pantranslation, bool set_zoomtranslation, bool set_transparency, bool set_deflscale);
 private:

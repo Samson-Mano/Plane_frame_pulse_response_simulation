@@ -179,9 +179,82 @@ double pulse_elementline_list_store::hermite_beam_element_interpolation(double v
 	return ((N1 * v1) + (N2 * theta1) + (N3 * v2) + (N4 * theta2));
 }
 
-void pulse_elementline_list_store::set_buffer(int selected_mode)
+void pulse_elementline_list_store::set_buffer()
 {
-	// Set buffer
+	// Clear the lines
+	pulse_element_lines.clear_lines();
+
+	//__________________________ Add the Dynamic lines
+	int i = 0;
+	for (auto& line_m : pulse_elementlineMap)
+	{
+		pulse_elementline_store  ln = line_m.second;
+
+		// get all the hermite interpolation line
+		for (auto& h_lines : ln.hermite_line_data)
+		{
+			std::vector<glm::vec2> line_startpt_offset; // list of start points offset
+			std::vector<glm::vec2> line_endpt_offset; // list of end points offset
+
+			std::vector<glm::vec3> line_startpt_color; // list of start point color
+			std::vector<glm::vec3> line_endpt_color; // list of end point color
+
+			// Add each individual segment of main line to list
+			for (auto& pt1_m : h_lines.pt1_modal_displ)
+			{
+				glm::vec2 pt1 = pt1_m.second;
+				// Pt1
+				// Point1 displacement
+				double pt_displ1 = std::sqrt(std::pow(pt1.x, 2) +
+					std::pow(pt1.y, 2));
+
+				// Distance ratio1  Scale the displacement with maximum displacement
+				double dist_ratio1 = pt_displ1 / max_line_displ;
+
+				glm::vec2 pt1_offset = glm::vec2(pt1.x * dist_ratio1,
+					pt1.y * dist_ratio1);
+
+				// Add to the list
+				line_startpt_offset.push_back(pt1_offset);
+
+				// pt1 contour color
+				glm::vec3 pt1_contour_color = getContourColor(static_cast<float>(1.0 - dist_ratio1));
+
+				// Add to the list
+				line_startpt_color.push_back(pt1_contour_color);
+			}
+			
+			for (auto& pt2_m : h_lines.pt2_modal_displ)
+			{
+				glm::vec2 pt2 = pt2_m.second;
+				// Pt2
+				// Point2 displacement
+				double pt_displ2 = std::sqrt(std::pow(pt2.x, 2) +
+					std::pow(pt2.y, 2));
+
+				// Distance ratio1  Scale the displacement with maximum displacement
+				double dist_ratio2 = pt_displ2 / max_line_displ;
+
+				glm::vec2 pt2_offset = glm::vec2(pt2.x * dist_ratio2,
+					pt2.y * dist_ratio2);
+
+				// Add to the list
+				line_endpt_offset.push_back(pt2_offset);
+
+				// pt1 contour color
+				glm::vec3 pt2_contour_color = getContourColor(static_cast<float>(1.0 - dist_ratio2));
+
+				// Add to the list
+				line_endpt_color.push_back(pt2_contour_color);
+			}
+
+			// Add to the line list
+			pulse_element_lines.add_line(i, h_lines.pt1, h_lines.pt2, line_startpt_offset, line_endpt_offset, line_startpt_color, line_endpt_color);
+			i++;
+		}
+	}
+
+	// Set the buffer
 	pulse_element_lines.set_buffer();
 }
 
