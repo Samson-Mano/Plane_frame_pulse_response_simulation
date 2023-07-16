@@ -244,7 +244,6 @@ void pulse_response_window::render_window()
 			// Handle Stop button click
 			animate_play = false;
 			animate_pause = false;
-			time_val = 0.0f;
 		}
 
 		// Animation speed control
@@ -286,6 +285,10 @@ void pulse_response_window::render_window()
 		ImGui::SameLine();
 		ImGui::Text(" %.1f", animation_speed);
 
+		// Display the time step and time value
+		ImGui::Text("Time = %.3f secs",
+			time_interval_atrun * time_step);
+
 		// Display the frame rate
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
 			1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -308,22 +311,32 @@ void pulse_response_window::render_window()
 	ImGui::End();
 
 
-	// Set the animation data
-	if (animate_play == true)
-	{
-		if (time_val > 6.283185307f)
-		{
-			time_val = 0.0f;
-		}
+	//// Set the animation data
+	//if (animate_play == true)
+	//{
+	//	if (time_val > 6.283185307f)
+	//	{
+	//		time_val = 0.0f;
+	//	}
 
-		// Animation is playing 
-		normailzed_defomation_scale = std::sin(time_val * animation_speed); // Varies between 0 and 1
-		deformation_scale = normailzed_defomation_scale * deformation_scale_max;
-		time_val = time_val + 0.0002f;
-	}
-	else if (animate_pause == true)
+	//	// Animation is playing 
+	//	normailzed_defomation_scale = std::sin(time_val * animation_speed); // Varies between 0 and 1
+	//	deformation_scale = normailzed_defomation_scale * deformation_scale_max;
+	//	time_val = time_val + 0.0002f;
+	//}
+	//else if (animate_pause == true)
+	//{
+	//	normailzed_defomation_scale = std::sin(time_val * animation_speed); // Varies between 0 and 1
+	//	deformation_scale = normailzed_defomation_scale * deformation_scale_max;
+	//}
+
+	// Cycle through the pulse response time step
+	if (animate_play == true && pulse_response_analysis_complete == true)
 	{
-		normailzed_defomation_scale = std::sin(time_val * animation_speed); // Varies between 0 and 1
-		deformation_scale = normailzed_defomation_scale * deformation_scale_max;
+
+
+
 	}
+
+
 }

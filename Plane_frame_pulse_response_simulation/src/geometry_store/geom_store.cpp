@@ -32,6 +32,11 @@ void geom_store::init(options_window* op_window, material_window* mat_window, mo
 	modal_result_nodes.init(&geom_param);
 	modal_result_lineelements.init(&geom_param);
 
+	// Initialize the pulse analysis result nodes and lines
+	pulse_response_result.clear_results();
+	pulse_result_nodes.init(&geom_param);
+	pulse_result_lineelements.init(&geom_param);
+
 	// Add the window pointers
 	this->op_window = op_window;
 	this->mat_window = mat_window;
@@ -1099,6 +1104,9 @@ void geom_store::paint_pulse_analysis()
 		// Execute the close sequence
 		if (is_pulse_analysis_complete == true)
 		{
+			// Pulse response is complete (but clear the results anyway beacuse results will be loaded at open)
+			sol_pulse_window->pulse_response_analysis_complete = false;
+
 			// Pulse response analysis is complete
 			update_model_transperency(false);
 		}
@@ -1150,6 +1158,11 @@ void geom_store::paint_pulse_analysis()
 			// Modal analysis is complete (check whether frequency response analysis is complete or not)
 			if (is_pulse_analysis_complete == true)
 			{
+				// Set the pulse response analysis result
+				sol_pulse_window->pulse_response_analysis_complete = true;
+				sol_pulse_window->time_interval_atrun = pulse_response_result.time_interval;
+				sol_pulse_window->time_step_count = pulse_response_result.time_step_count;
+
 				// Pulse response analysis is complete
 				update_model_transperency(true);
 			}
@@ -1171,7 +1184,7 @@ void geom_store::paint_pulse_analysis()
 			sol_modal_window->is_include_consistent_mass_matrix,
 			modal_results,
 			sol_pulse_window->total_simulation_time,
-			sol_pulse_window->time_val,
+			sol_pulse_window->time_interval,
 			sol_pulse_window->damping_ratio,
 			pulse_response_result,
 			pulse_result_nodes,
@@ -1181,6 +1194,11 @@ void geom_store::paint_pulse_analysis()
 		// Check whether the modal analysis is complete or not
 		if (is_pulse_analysis_complete == true)
 		{
+			// Set the pulse response analysis result
+			sol_pulse_window->pulse_response_analysis_complete = true;
+			sol_pulse_window->time_interval_atrun = pulse_response_result.time_interval;
+			sol_pulse_window->time_step_count = pulse_response_result.time_step_count;
+
 			// Pulse response analysis is complete
 			update_model_transperency(true);
 		}

@@ -115,7 +115,8 @@ private:
 		const Eigen::MatrixXd& reduced_eigenVectorsMatrix,
 		const Eigen::MatrixXd& reduced_globalMassMatrix,
 		const Eigen::MatrixXd& reduced_globalStiffnessMatrix,
-		const int& reducedDOF);
+		const int& reducedDOF,
+		std::ofstream& output_file);
 
 	void get_reduced_modal_vector_matrix(Eigen::MatrixXd& reduced_eigenVectorsMatrix,
 		const modal_analysis_result_store& modal_results,

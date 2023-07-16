@@ -50,11 +50,6 @@ void pulse_elementline_list_store::add_pulse_elementline(int& line_id, pulse_nod
 	//__________________________ Add Hermite interpolation for Beam Element
 	temp_line.hermite_line_data = set_line_hermite_interpolation(interpolation_count, startNode, endNode);
 
-	// Add to the pulse element line
-
-
-
-
 	// Insert to the lines
 	pulse_elementlineMap.insert({ line_id, temp_line });
 	pulse_elementline_count++;
@@ -261,7 +256,7 @@ void pulse_elementline_list_store::set_buffer()
 void pulse_elementline_list_store::paint_pulse_elementlines()
 {
 	// Paint the lines
-	pulse_element_lines.paint_lines();
+	// pulse_element_lines.paint_lines();
 }
 
 void pulse_elementline_list_store::update_geometry_matrices(bool set_modelmatrix, bool set_pantranslation, bool set_zoomtranslation, bool set_transparency, bool set_deflscale)

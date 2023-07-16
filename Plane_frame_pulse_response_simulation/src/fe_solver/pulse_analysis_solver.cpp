@@ -28,6 +28,7 @@ void pulse_analysis_solver::pulse_analysis_start(const nodes_list_store& model_n
 {
 	// Main solver call
 	is_pulse_analysis_complete = false;
+	pulse_response_result.clear_results();
 
 	// Check the model
 	// Number of loads (Exit if no load is present)
@@ -146,7 +147,8 @@ void pulse_analysis_solver::pulse_analysis_start(const nodes_list_store& model_n
 		reduced_eigenVectorsMatrix,
 		reduced_globalMassMatrix,
 		reduced_globalStiffnessMatrix,
-		reducedDOF);
+		reducedDOF,
+		output_file);
 
 	//____________________________________________________________________________________________________________________
 	// Create the Pulse force data for all the individual 
@@ -180,13 +182,6 @@ void pulse_analysis_solver::pulse_analysis_start(const nodes_list_store& model_n
 		model_constarints,
 		numDOF,
 		output_file);
-
-	if (print_matrix == true)
-	{
-		output_file << "Global support inclination matrix" << std::endl;
-		output_file << globalSupportInclinationMatrix << std::endl;
-		output_file << std::endl;
-	}
 
 	//____________________________________________________________________________________________________________________
 	// Pulse Response
@@ -276,6 +271,8 @@ void pulse_analysis_solver::pulse_analysis_start(const nodes_list_store& model_n
 		model_nodes,
 		model_lineelements,
 		node_results);
+
+	pulse_response_result.set_analysis_setting(r_id, time_interval, total_simulation_time);
 
 	if (pulse_result_lineelements.max_line_displ == 0)
 	{
@@ -733,7 +730,8 @@ void pulse_analysis_solver::get_modal_matrices(Eigen::VectorXd& modalMass,
 	const Eigen::MatrixXd& reduced_eigenVectorsMatrix,
 	const Eigen::MatrixXd& reduced_globalMassMatrix,
 	const Eigen::MatrixXd& reduced_globalStiffnessMatrix,
-	const int& reducedDOF)
+	const int& reducedDOF,
+	std::ofstream& output_file)
 {
 	// Get the modal matrices
 	Eigen::MatrixXd modalMassMatrix(reducedDOF, reducedDOF);
@@ -748,8 +746,21 @@ void pulse_analysis_solver::get_modal_matrices(Eigen::VectorXd& modalMass,
 	modalStiffMatrix = reduced_eigenVectorsMatrix.transpose() * reduced_globalStiffnessMatrix * reduced_eigenVectorsMatrix;
 
 	// Create the modal vectors
-	modalMass(modalMassMatrix.diagonal());
-	modalStiff(modalStiffMatrix.diagonal());
+	modalMass = modalMassMatrix.diagonal();
+	modalStiff = modalStiffMatrix.diagonal();
+
+	if (print_matrix == true)
+	{
+		// Print the Modal Mass Matrix
+		output_file << "Modal Mass Matrix" << std::endl;
+		output_file << modalMassMatrix << std::endl;
+		output_file << std::endl;
+
+		// Print the Modal Stiffness matrix
+		output_file << "Modal Stiffness Matrix" << std::endl;
+		output_file << modalStiffMatrix << std::endl;
+		output_file << std::endl;
+	}
 }
 
 void pulse_analysis_solver::get_reduced_modal_vector_matrix(Eigen::MatrixXd& reduced_eigenVectorsMatrix,

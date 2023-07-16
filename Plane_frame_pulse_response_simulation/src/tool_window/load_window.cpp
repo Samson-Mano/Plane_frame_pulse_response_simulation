@@ -152,6 +152,13 @@ void load_window::render_window()
 	ImGui::Text("End Time = %.3f", loadendtime_input);
 
 	//_________________________________________________________________________________________
+	// Display the Load frequency
+	
+	ImGui::Text("Load frequency = %.3f Hz",
+		1.0f / (loadendtime_input - loadstarttime_input));
+
+
+	//_________________________________________________________________________________________
 	// Input box to give input via text
 	static bool ldinput_mode = false;
 	static char ldratio_str[16] = ""; // buffer to store input angle string
@@ -356,7 +363,7 @@ void load_window::LoadTextureFromFile(const char* filename, load_image_data& loa
 	}
 }
 
-bool load_window::get_image_min_max_coord(ImVec2& window_pos, ImVec2& window_size, ImVec2& img_pos_top_left, 
+bool load_window::get_image_min_max_coord(ImVec2& window_pos, ImVec2& window_size, ImVec2& img_pos_top_left,
 	ImVec2& img_pos_top_right, ImVec2& img_pos_bot_right, ImVec2& img_pos_bot_left, double& orientation)
 {
 	// Get the image position based on rotation angle
@@ -377,7 +384,7 @@ bool load_window::get_image_min_max_coord(ImVec2& window_pos, ImVec2& window_siz
 	glm::vec2 bot_right = glm::vec2((rect_min_size * size_factor), -(rect_min_size * size_factor));
 	glm::vec2 bot_left = glm::vec2(-(rect_min_size * size_factor), -(rect_min_size * size_factor));
 
-	float radians = ((static_cast<float>(orientation)+90.0f) * 3.14159365f) / 180.0f; // convert degrees to radians
+	float radians = ((static_cast<float>(orientation) + 90.0f) * 3.14159365f) / 180.0f; // convert degrees to radians
 	float cos_theta = cos(radians);
 	float sin_theta = sin(radians);
 

@@ -101,7 +101,7 @@ void pulse_nodes_list_store::set_buffer()
 void pulse_nodes_list_store::paint_pulse_nodes()
 {
 	// Paint the points
-	pulse_node_points.paint_points();
+	// pulse_node_points.paint_points();
 }
 
 void pulse_nodes_list_store::update_geometry_matrices(bool set_modelmatrix, bool set_pantranslation, bool set_zoomtranslation, bool set_transparency, bool set_deflscale)

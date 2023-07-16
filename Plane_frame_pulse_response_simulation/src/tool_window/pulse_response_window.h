@@ -32,12 +32,15 @@ public:
 	// Animation control
 	bool animate_play = true;
 	bool animate_pause = false;
-	double time_val = 0.0;
 	double deformation_scale_max = 10.0;
 	double animation_speed = 10.0;
 	double normailzed_defomation_scale = 0.0;
 	double deformation_scale = 0.0;
 
+	// Time step control
+	double time_interval_atrun = 0.0; // Value of time interval used in the pulse response 
+	int time_step_count = 0;
+	int time_step = 0;
 
 	pulse_response_window();
 	~pulse_response_window();
