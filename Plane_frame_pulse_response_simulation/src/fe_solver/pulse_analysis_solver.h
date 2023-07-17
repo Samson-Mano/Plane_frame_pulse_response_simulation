@@ -32,7 +32,7 @@ typedef Eigen::SparseMatrix<double> SparseMatrix;
 
 struct pulse_load_data
 {
-	double load_id;
+	int load_id = 0;
 	double load_start_time = 0.0;
 	double load_end_time = 0.0;
 	Eigen::MatrixXd modal_reducedLoadamplMatrix;

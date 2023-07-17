@@ -1124,8 +1124,8 @@ void geom_store::paint_pulse_analysis()
 	if (is_pulse_analysis_complete == true)
 	{
 		// Update the deflection scale
-		geom_param.normalized_defl_scale = std::abs(sol_modal_window->normailzed_defomation_scale);
-		geom_param.defl_scale = sol_modal_window->deformation_scale;
+		geom_param.normalized_defl_scale = 1.0f;
+		geom_param.defl_scale = sol_pulse_window->deformation_scale_max;
 
 		// Update the deflection scale
 		pulse_result_lineelements.update_geometry_matrices(false, false, false, false, true);
@@ -1133,10 +1133,10 @@ void geom_store::paint_pulse_analysis()
 		// ______________________________________________________________________________________
 
 		// Paint the pulse lines
-		pulse_result_lineelements.paint_pulse_elementlines();
+		pulse_result_lineelements.paint_pulse_elementlines(sol_pulse_window->time_step);
 
 		// Paint the pulse nodes
-		pulse_result_nodes.paint_pulse_nodes();
+		pulse_result_nodes.paint_pulse_nodes(sol_pulse_window->time_step);
 	}
 
 
@@ -1162,6 +1162,10 @@ void geom_store::paint_pulse_analysis()
 				sol_pulse_window->pulse_response_analysis_complete = true;
 				sol_pulse_window->time_interval_atrun = pulse_response_result.time_interval;
 				sol_pulse_window->time_step_count = pulse_response_result.time_step_count;
+
+				// Reset the buffers for pulse result nodes and lines
+				pulse_result_lineelements.set_buffer();
+				pulse_result_nodes.set_buffer();
 
 				// Pulse response analysis is complete
 				update_model_transperency(true);
@@ -1198,6 +1202,10 @@ void geom_store::paint_pulse_analysis()
 			sol_pulse_window->pulse_response_analysis_complete = true;
 			sol_pulse_window->time_interval_atrun = pulse_response_result.time_interval;
 			sol_pulse_window->time_step_count = pulse_response_result.time_step_count;
+
+			// Reset the buffers for pulse result nodes and lines
+			pulse_result_lineelements.set_buffer();
+			pulse_result_nodes.set_buffer();
 
 			// Pulse response analysis is complete
 			update_model_transperency(true);

@@ -19,11 +19,13 @@ public:
 		const unsigned int* ib_indices,
 		unsigned int& ib_count,
 		VertexBufferLayout& vb_layout);
-	void CreateDynamicBuffers(const float* vb_data,
-		unsigned int& vb_size,
+	void CreateDynamicBuffers(unsigned int& vb_size,
 		const unsigned int* ib_indices,
 		unsigned int& ib_count,
 		VertexBufferLayout& vb_layout);
+	void UpdateDynamicVertexBuffer(const float* vb_data,
+		unsigned int& vb_size);
+
 	VertexBuffer vbo;
 	VertexArray vao;
 	IndexBuffer ibo;

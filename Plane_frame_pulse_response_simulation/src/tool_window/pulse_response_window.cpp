@@ -180,9 +180,9 @@ void pulse_response_window::render_window()
 	ImGui::SliderFloat(".", &deformation_scale_flt, 0.0f, 100.0f, "%.1f");
 	deformation_scale_max = deformation_scale_flt;
 
-	//Set the deformation scale
-	normailzed_defomation_scale = 1.0f;
-	deformation_scale = deformation_scale_max;
+	////Set the deformation scale
+	//normailzed_defomation_scale = 1.0f;
+	//deformation_scale = deformation_scale_max;
 
 	ImGui::Spacing();
 	//_________________________________________________________________________________________
@@ -289,6 +289,9 @@ void pulse_response_window::render_window()
 		ImGui::Text("Time = %.3f secs",
 			time_interval_atrun * time_step);
 
+		//ImGui::Text("Time value = %.3f secs",
+		//	stopwatch.current_elapsed());
+
 		// Display the frame rate
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
 			1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -310,33 +313,46 @@ void pulse_response_window::render_window()
 
 	ImGui::End();
 
-
-	//// Set the animation data
-	//if (animate_play == true)
-	//{
-	//	if (time_val > 6.283185307f)
-	//	{
-	//		time_val = 0.0f;
-	//	}
-
-	//	// Animation is playing 
-	//	normailzed_defomation_scale = std::sin(time_val * animation_speed); // Varies between 0 and 1
-	//	deformation_scale = normailzed_defomation_scale * deformation_scale_max;
-	//	time_val = time_val + 0.0002f;
-	//}
-	//else if (animate_pause == true)
-	//{
-	//	normailzed_defomation_scale = std::sin(time_val * animation_speed); // Varies between 0 and 1
-	//	deformation_scale = normailzed_defomation_scale * deformation_scale_max;
-	//}
-
 	// Cycle through the pulse response time step
-	if (animate_play == true && pulse_response_analysis_complete == true)
+	if (pulse_response_analysis_complete == true)
 	{
+		
+		if (animate_play == true)
+		{
+			// Stop watch
+			if ((stopwatch.current_elapsed()* animation_speed) > time_interval_atrun)
+			{
+				stopwatch.reset_time(); // reset the time
+				time_step++; // increment the time step
 
-
-
+				// Adjust the time step such that it didnot exceed the time_step_total
+				if (time_step >= time_step_count)
+				{
+					time_step = 0;
+				}
+			}
+		}
+		else if (animate_pause == true)
+		{
+			// Pause the animation
+		}
+		else
+		{
+			// Stop the animation (show the end of animation)
+			time_step = time_step_count - 1;
+		}
 	}
+}
 
 
+// Stop watch
+
+void Stopwatch::reset_time() 
+{
+	m_startTime = std::chrono::high_resolution_clock::now();
+}
+
+double Stopwatch::current_elapsed() const
+{
+	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_startTime).count() / 1000.0;
 }

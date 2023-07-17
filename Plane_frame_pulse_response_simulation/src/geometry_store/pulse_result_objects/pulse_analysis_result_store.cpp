@@ -10,7 +10,7 @@ pulse_analysis_result_store::~pulse_analysis_result_store()
 	// Empty destructor
 }
 
-void pulse_analysis_result_store::set_analysis_setting(const int& time_step_count,const int& time_interval, const double& total_simulation_time)
+void pulse_analysis_result_store::set_analysis_setting(const int& time_step_count,const double& time_interval, const double& total_simulation_time)
 {
 	// Set the analysis
 	this->time_step_count = time_step_count;

@@ -249,14 +249,14 @@ void pulse_elementline_list_store::set_buffer()
 		}
 	}
 
-	// Set the buffer
+	// Set the buffer (Only the index buffer is set because its a dynamic paint)
 	pulse_element_lines.set_buffer();
 }
 
-void pulse_elementline_list_store::paint_pulse_elementlines()
+void pulse_elementline_list_store::paint_pulse_elementlines(const int& dyn_index)
 {
 	// Paint the lines
-	// pulse_element_lines.paint_lines();
+	pulse_element_lines.paint_lines(dyn_index);
 }
 
 void pulse_elementline_list_store::update_geometry_matrices(bool set_modelmatrix, bool set_pantranslation, bool set_zoomtranslation, bool set_transparency, bool set_deflscale)

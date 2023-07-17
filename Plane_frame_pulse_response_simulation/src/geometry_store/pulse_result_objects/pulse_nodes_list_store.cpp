@@ -22,6 +22,7 @@ void pulse_nodes_list_store::init(geom_parameters* geom_param_ptr)
 	// Clear the results
 	node_count = 0;
 	pulse_nodeMap.clear();
+	pulse_node_points.clear_points();
 	max_node_displ = 0.0; // Maximum nodal displacement
 }
 
@@ -30,6 +31,7 @@ void pulse_nodes_list_store::clear_data()
 	// Clear the results
 	node_count = 0;
 	pulse_nodeMap.clear();
+	pulse_node_points.clear_points();
 	max_node_displ = 0.0; // Maximum nodal displacement
 }
 
@@ -98,10 +100,10 @@ void pulse_nodes_list_store::set_buffer()
 	pulse_node_points.set_buffer();
 }
 
-void pulse_nodes_list_store::paint_pulse_nodes()
+void pulse_nodes_list_store::paint_pulse_nodes(const int& dyn_index)
 {
 	// Paint the points
-	// pulse_node_points.paint_points();
+	pulse_node_points.paint_points(dyn_index);
 }
 
 void pulse_nodes_list_store::update_geometry_matrices(bool set_modelmatrix, bool set_pantranslation, bool set_zoomtranslation, bool set_transparency, bool set_deflscale)

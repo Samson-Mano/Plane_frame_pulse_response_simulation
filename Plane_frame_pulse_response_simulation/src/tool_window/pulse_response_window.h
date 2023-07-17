@@ -5,6 +5,19 @@
 #include "../ImGui/imgui_impl_glfw.h"
 #include "../ImGui/imgui_impl_opengl3.h"
 #include "../ImGui/stb_implement.h"
+#include <chrono>
+
+
+class Stopwatch
+{
+public:
+	void reset_time();
+	double current_elapsed() const;
+
+private:
+	std::chrono::time_point<std::chrono::high_resolution_clock> m_startTime = std::chrono::high_resolution_clock::time_point();
+	// std::chrono::time_point<std::chrono::high_resolution_clock> m_endTime;
+};
 
 class pulse_response_window
 {
@@ -33,9 +46,9 @@ public:
 	bool animate_play = true;
 	bool animate_pause = false;
 	double deformation_scale_max = 10.0;
-	double animation_speed = 10.0;
-	double normailzed_defomation_scale = 0.0;
-	double deformation_scale = 0.0;
+	double animation_speed = 1.0;
+	// double normailzed_defomation_scale = 0.0;
+	// double deformation_scale = 0.0;
 
 	// Time step control
 	double time_interval_atrun = 0.0; // Value of time interval used in the pulse response 
@@ -47,5 +60,6 @@ public:
 	void init();
 	void render_window();
 private:
-
+	Stopwatch stopwatch;
 };
+

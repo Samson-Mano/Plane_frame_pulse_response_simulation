@@ -42,7 +42,7 @@ public:
 	double hermite_beam_element_interpolation(double v1, double theta1, double v2, double theta2, double s);
 
 	void set_buffer();
-	void paint_pulse_elementlines();
+	void paint_pulse_elementlines(const int& dyn_index);
 	void update_geometry_matrices(bool set_modelmatrix, bool set_pantranslation, bool set_zoomtranslation, bool set_transparency, bool set_deflscale);
 private:
 	geom_parameters* geom_param_ptr = nullptr;

@@ -916,6 +916,7 @@ void pulse_analysis_solver::create_pulse_load_matrices(pulse_load_data& pulse_lo
 
 	//______________________________________________________________________________________________
 	// Copy the data to pulse load data variable
+	pulse_loads.load_id = ld.load_id;
 	pulse_loads.load_start_time = ld.load_start_time;
 	pulse_loads.load_end_time = ld.load_end_time;
 	pulse_loads.globalLoadamplMatrix = globalLoadamplMatrix; // Global load matrix for this load
