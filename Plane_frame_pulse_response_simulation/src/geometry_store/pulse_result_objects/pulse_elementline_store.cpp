@@ -206,8 +206,8 @@ void pulse_elementline_list_store::set_buffer()
 				// Distance ratio1  Scale the displacement with maximum displacement
 				double dist_ratio1 = pt_displ1 / max_line_displ;
 
-				glm::vec2 pt1_offset = glm::vec2(pt1.x * dist_ratio1,
-					pt1.y * dist_ratio1);
+				glm::vec2 pt1_offset = glm::vec2(pt1.x / max_line_displ,
+					pt1.y / max_line_displ);
 
 				// Add to the list
 				line_startpt_offset.push_back(pt1_offset);
@@ -230,8 +230,8 @@ void pulse_elementline_list_store::set_buffer()
 				// Distance ratio1  Scale the displacement with maximum displacement
 				double dist_ratio2 = pt_displ2 / max_line_displ;
 
-				glm::vec2 pt2_offset = glm::vec2(pt2.x * dist_ratio2,
-					pt2.y * dist_ratio2);
+				glm::vec2 pt2_offset = glm::vec2(pt2.x / max_line_displ,
+					pt2.y / max_line_displ);
 
 				// Add to the list
 				line_endpt_offset.push_back(pt2_offset);

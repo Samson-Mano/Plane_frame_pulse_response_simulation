@@ -14,8 +14,11 @@ void modal_analysis_result_store::clear_data()
 {
 	// Clear the eigen values and eigen vectors
 	number_of_modes = 0;
+	nodeid_map.clear();
 	eigen_values.clear();
 	eigen_vectors.clear();
+	eigen_vectors_reduced.clear();
+	mode_result_str.clear();
 }
 
 void modal_analysis_result_store::add_node_map(std::unordered_map<int, int>& nodeid_map)

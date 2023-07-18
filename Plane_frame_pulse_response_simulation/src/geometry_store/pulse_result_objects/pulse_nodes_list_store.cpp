@@ -81,13 +81,13 @@ void pulse_nodes_list_store::set_buffer()
 			double dist_ratio = pt_displ / max_node_displ;
 
 			// Create the point offset
-			glm::vec2 temp_point_offset = glm::vec2(nd.node_pulse_result.node_pulse_displ[i].x * dist_ratio,
-				nd.node_pulse_result.node_pulse_displ[i].y * dist_ratio);
+			glm::vec2 temp_point_offset = glm::vec2(nd.node_pulse_result.node_pulse_displ[i].x / max_node_displ,
+				nd.node_pulse_result.node_pulse_displ[i].y / max_node_displ);
 
 			point_offset.push_back(temp_point_offset);
 
 			// Create the node color vectors
-			glm::vec3 temp_point_color = getContourColor(static_cast<float>(dist_ratio));
+			glm::vec3 temp_point_color = getContourColor(static_cast<float>(1.0 - dist_ratio));
 
 			point_color.push_back(temp_point_color);
 		}
