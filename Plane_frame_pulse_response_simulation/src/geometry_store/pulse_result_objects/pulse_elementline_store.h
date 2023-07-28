@@ -10,8 +10,8 @@ struct pulse_line_points
 	glm::vec2 pt2 = glm::vec2(0);
 
 	// Point displacements
-	std::unordered_map<int, glm::vec2> pt1_modal_displ;
-	std::unordered_map<int, glm::vec2> pt2_modal_displ;
+	std::vector<glm::vec2> pt1_modal_displ;
+	std::vector<glm::vec2> pt2_modal_displ;
 };
 
 struct pulse_elementline_store
